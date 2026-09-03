@@ -1,0 +1,36 @@
+﻿experiment_name: "mobilenetv2_fashionmnist_baseline"
+
+system:
+  device: "auto"
+  seed: 42
+  deterministic: true
+  num_workers: 2
+  pin_memory: true
+  output_dir: "experiments/outputs"
+  checkpoint_dir: "checkpoints"
+  log_level: "INFO"
+
+dataset:
+  name: "fashion_mnist"
+  data_dir: "data/raw"
+  image_size: 224
+  val_split: 0.15
+  num_classes: 10
+
+model:
+  name: "mobilenet_v2"
+  num_classes: 10
+  pretrained: true
+  freeze_backbone: true
+  dropout: 0.2
+
+training:
+  batch_size: 64
+  epochs: 5
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "adamw"
+  scheduler: "cosine"
+  mixed_precision: true
+  early_stopping_patience: 3
+  gradient_clip_val: 1.0
