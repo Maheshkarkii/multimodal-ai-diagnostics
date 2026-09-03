@@ -1,5 +1,5 @@
 ﻿"""
-Unified Experiment Configuration system supporting Vision, Audio, and Sensor Telemetry.
+Unified Experiment Configuration system supporting Vision, Audio, Sensor, and Multimodal Fusion.
 """
 
 from dataclasses import dataclass, field, asdict
@@ -38,9 +38,24 @@ class AnomalyDetectorConfig:
 
 
 @dataclass
+class MultimodalConfig:
+    vision_dim: int = 1280
+    audio_dim: int = 512
+    sensor_dim: int = 256
+    text_dim: int = 256
+    shared_projection_dim: int = 256
+    fusion_hidden_dims: List[int] = field(default_factory=lambda: [512, 256])
+    unified_embedding_dim: int = 256
+    dropout: float = 0.25
+    modality_dropout_prob: float = 0.20
+    enabled_modalities: List[str] = field(default_factory=lambda: ["vision", "audio", "sensor", "text"])
+
+
+@dataclass
 class DatasetConfig:
     name: str = "industrial_diagnostics"
     dataset_dir: str = "data/raw"
+    manifest_path: Optional[str] = None
     image_size: int = 224
     sample_rate: int = 16000
     duration: float = 3.0
@@ -68,7 +83,7 @@ class DatasetConfig:
 
 @dataclass
 class ModelConfig:
-    name: str = "sensor_mlp"
+    name: str = "multimodal_fusion"
     num_classes: int = 5
     in_channels: int = 3
     in_features: int = 6
@@ -101,6 +116,7 @@ class ExperimentConfig:
     system: SystemConfig = field(default_factory=SystemConfig)
     dataset: DatasetConfig = field(default_factory=DatasetConfig)
     model: ModelConfig = field(default_factory=ModelConfig)
+    multimodal: MultimodalConfig = field(default_factory=MultimodalConfig)
     anomaly_detector: AnomalyDetectorConfig = field(default_factory=AnomalyDetectorConfig)
     training: TrainingConfig = field(default_factory=TrainingConfig)
 
@@ -125,10 +141,10 @@ class ExperimentConfig:
             aug_cfg = AugmentationConfig()
 
         anom_data = d.get("anomaly_detector", {})
-        if isinstance(anom_data, dict):
-            anom_cfg = AnomalyDetectorConfig(**anom_data)
-        else:
-            anom_cfg = AnomalyDetectorConfig()
+        anom_cfg = AnomalyDetectorConfig(**anom_data) if isinstance(anom_data, dict) else AnomalyDetectorConfig()
+
+        mm_data = d.get("multimodal", {})
+        mm_cfg = MultimodalConfig(**mm_data) if isinstance(mm_data, dict) else MultimodalConfig()
 
         model_data = d.get("model", {})
         training_data = d.get("training", {})
@@ -139,6 +155,7 @@ class ExperimentConfig:
             system=SystemConfig(**system_data),
             dataset=DatasetConfig(augmentations=aug_cfg, **dataset_data),
             model=ModelConfig(**model_data),
+            multimodal=mm_cfg,
             anomaly_detector=anom_cfg,
             training=TrainingConfig(**training_data),
         )

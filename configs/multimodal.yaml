@@ -1,0 +1,53 @@
+﻿experiment_name: "multimodal_fusion_baseline"
+
+system:
+  device: "auto"
+  seed: 42
+  deterministic: true
+  num_workers: 0
+  pin_memory: true
+  output_dir: "reports/experiments/multimodal"
+  checkpoint_dir: "checkpoints"
+  log_level: "INFO"
+
+dataset:
+  name: "aligned_multimodal_machine_events"
+  manifest_path: "data/multimodal/multimodal_manifest.csv"
+  val_split: 0.15
+  test_split: 0.15
+  num_classes: 5
+  classes:
+    - "normal_state"
+    - "bearing_defect_wear"
+    - "structural_crack_loose"
+    - "rotor_unbalance"
+    - "hydraulic_cavitation"
+  group_by: "machine_id"
+
+multimodal:
+  vision_dim: 1280
+  audio_dim: 512
+  sensor_dim: 256
+  text_dim: 256
+  shared_projection_dim: 256
+  fusion_hidden_dims: [512, 256]
+  unified_embedding_dim: 256
+  dropout: 0.25
+  modality_dropout_prob: 0.20  # Train-time modality dropout for robustness to missing sensors/inputs
+  enabled_modalities:
+    - "vision"
+    - "audio"
+    - "sensor"
+    - "text"
+
+training:
+  batch_size: 16
+  epochs: 15
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "adamw"
+  scheduler: "cosine"
+  mixed_precision: false
+  early_stopping_patience: 5
+  gradient_clip_val: 1.0
+  use_class_weights: true
