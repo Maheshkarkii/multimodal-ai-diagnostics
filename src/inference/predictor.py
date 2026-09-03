@@ -1,22 +1,32 @@
 ﻿"""
-Vision Diagnostics Inference Predictor.
+Industrial Vision Diagnostics Inference & Multimodal Feature Embedding Predictor.
 """
 
 from pathlib import Path
-from typing import Dict, Any, List, Union, Optional
+from typing import Dict, Any, List, Union, Optional, Tuple
 import numpy as np
 from PIL import Image
 import torch
 import torch.nn as nn
 
-from src.preprocessing.transforms import get_eval_transforms
+from src.preprocessing.transforms import get_industrial_eval_transforms
 from src.vision.model import build_vision_model
-from src.data.dataset import FASHION_MNIST_CLASSES
 from src.utils.device import resolve_device
 
 
+DEFAULT_FAULT_CLASSES = [
+    "normal",
+    "bearing_fault",
+    "corrosion",
+    "surface_crack",
+    "damaged_component",
+]
+
+
 class VisionPredictor:
-    """Production inference engine for single-image and batch diagnostic predictions."""
+    """
+    Industrial diagnostic vision inference engine.
+    """
 
     def __init__(
         self,
@@ -27,9 +37,9 @@ class VisionPredictor:
         device: str = "auto",
     ):
         self.device = resolve_device(device)
-        self.class_names = class_names or FASHION_MNIST_CLASSES
+        self.class_names = class_names or DEFAULT_FAULT_CLASSES
         self.image_size = image_size
-        self.transform = get_eval_transforms(image_size=self.image_size)
+        self.transform = get_industrial_eval_transforms(image_size=self.image_size)
 
         if model is not None:
             self.model = model.to(self.device)
@@ -44,7 +54,7 @@ class VisionPredictor:
         if not checkpoint_path.exists():
             raise FileNotFoundError(f"Checkpoint file not found: {checkpoint_path}")
 
-        ckpt = torch.load(checkpoint_path, map_location=self.device)
+        ckpt = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
         model = build_vision_model(
             num_classes=len(self.class_names),
             pretrained=False,
@@ -59,29 +69,29 @@ class VisionPredictor:
         self,
         image_input: Union[str, Path, Image.Image, np.ndarray],
         top_k: int = 3,
+        return_embedding: bool = False,
     ) -> Dict[str, Any]:
         """
-        Run inference on a single image.
-
-        Args:
-            image_input: Filepath, PIL Image, or NumPy Array.
-            top_k: Number of top ranked predictions to return.
-
-        Returns:
-            Dictionary containing predicted class, index, confidence, and top-k rankings.
+        Execute diagnostic prediction on an equipment image.
         """
         if isinstance(image_input, (str, Path)):
-            pil_image = Image.open(image_input)
+            pil_image = Image.open(image_input).convert("RGB")
         elif isinstance(image_input, np.ndarray):
-            pil_image = Image.fromarray(image_input)
+            pil_image = Image.fromarray(image_input).convert("RGB")
         elif isinstance(image_input, Image.Image):
-            pil_image = image_input
+            pil_image = image_input.convert("RGB")
         else:
             raise ValueError(f"Unsupported image input type: {type(image_input)}")
 
         tensor_img = self.transform(pil_image).unsqueeze(0).to(self.device)
 
-        logits = self.model(tensor_img)
+        if return_embedding:
+            logits, embeddings = self.model(tensor_img, return_features=True)
+            emb_vector = embeddings.squeeze(0).cpu().numpy().tolist()
+        else:
+            logits = self.model(tensor_img)
+            emb_vector = None
+
         probabilities = torch.softmax(logits, dim=1).squeeze(0)
 
         # Top-1
@@ -103,9 +113,17 @@ class VisionPredictor:
             for i in range(k)
         ]
 
-        return {
+        result = {
+            "predicted_fault": top1_class,
             "predicted_class": top1_class,
             "predicted_index": top1_idx,
             "confidence": top1_conf,
+            "top_candidates": topk_list,
             "top_k": topk_list,
         }
+
+        if return_embedding:
+            result["embedding_dim"] = len(emb_vector)
+            result["feature_embedding"] = emb_vector
+
+        return result

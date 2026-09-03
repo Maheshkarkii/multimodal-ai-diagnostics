@@ -1,13 +1,13 @@
 ﻿"""
-Reusable PyTorch Model Trainer with Checkpointing, Mixed Precision, and Metric Tracking.
+Enhanced PyTorch Trainer supporting Class-Weighted Loss, Discriminative LR, and Experiment Tracking.
 """
 
+from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, Any, Optional
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 
 from src.utils.config import ExperimentConfig
 from src.utils.device import resolve_device, set_seed
@@ -15,7 +15,7 @@ from src.utils.logging import setup_logger
 
 
 class Trainer:
-    """Production PyTorch model training controller."""
+    """Industrial Vision PyTorch model trainer supporting transfer learning and fine-tuning."""
 
     def __init__(
         self,
@@ -23,12 +23,13 @@ class Trainer:
         train_loader: DataLoader,
         val_loader: DataLoader,
         config: ExperimentConfig,
+        class_weights: Optional[torch.Tensor] = None,
         logger: Optional[Any] = None,
     ):
         self.config = config
         self.logger = logger or setup_logger("Trainer", level=config.system.log_level)
 
-        # 1. Device and determinism
+        # 1. Device and reproducibility
         set_seed(config.system.seed, config.system.deterministic)
         self.device = resolve_device(config.system.device)
         self.model = model.to(self.device)
@@ -36,33 +37,16 @@ class Trainer:
         self.train_loader = train_loader
         self.val_loader = val_loader
 
-        # 2. Loss Criterion
-        self.criterion = nn.CrossEntropyLoss()
-
-        # 3. Optimizer selection
-        opt_name = config.training.optimizer.lower()
-        trainable_params = [p for p in self.model.parameters() if p.requires_grad]
-        if opt_name == "adamw":
-            self.optimizer = torch.optim.AdamW(
-                trainable_params,
-                lr=config.training.learning_rate,
-                weight_decay=config.training.weight_decay,
-            )
-        elif opt_name == "adam":
-            self.optimizer = torch.optim.Adam(
-                trainable_params,
-                lr=config.training.learning_rate,
-                weight_decay=config.training.weight_decay,
-            )
-        elif opt_name == "sgd":
-            self.optimizer = torch.optim.SGD(
-                trainable_params,
-                lr=config.training.learning_rate,
-                weight_decay=config.training.weight_decay,
-                momentum=0.9,
-            )
+        # 2. Loss Criterion with Class Imbalance Weighting
+        if config.training.use_class_weights and class_weights is not None:
+            weights = class_weights.to(self.device)
+            self.logger.info("Applying inverse-frequency class weights: %s", weights.cpu().tolist())
+            self.criterion = nn.CrossEntropyLoss(weight=weights)
         else:
-            raise ValueError(f"Unsupported optimizer: {opt_name}")
+            self.criterion = nn.CrossEntropyLoss()
+
+        # 3. Optimizer with Discriminative Learning Rates for fine-tuning
+        self.optimizer = self._build_optimizer()
 
         # 4. Learning Rate Scheduler
         sched_name = config.training.scheduler.lower()
@@ -81,11 +65,46 @@ class Trainer:
         self.use_amp = config.training.mixed_precision and self.device.type == "cuda"
         self.scaler = torch.amp.GradScaler("cuda") if self.use_amp else None
 
-        # 6. Tracking and checkpointing
+        # 6. Checkpoint Directory
         self.checkpoint_dir = Path(config.system.checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        self.best_val_f1 = 0.0
         self.best_val_acc = 0.0
         self.best_epoch = 0
+
+    def _build_optimizer(self) -> torch.optim.Optimizer:
+        """Construct optimizer supporting discriminative layer-wise learning rates."""
+        opt_name = self.config.training.optimizer.lower()
+        head_lr = self.config.training.learning_rate
+        backbone_lr = self.config.training.backbone_learning_rate or (head_lr * 0.1)
+
+        head_params = []
+        backbone_params = []
+
+        if hasattr(self.model, "classifier"):
+            head_params = [p for p in self.model.classifier.parameters() if p.requires_grad]
+        if hasattr(self.model, "features"):
+            backbone_params = [p for p in self.model.features.parameters() if p.requires_grad]
+
+        param_groups = []
+        if head_params:
+            param_groups.append({"params": head_params, "lr": head_lr})
+        if backbone_params:
+            param_groups.append({"params": backbone_params, "lr": backbone_lr})
+
+        if not param_groups:
+            param_groups = [{"params": [p for p in self.model.parameters() if p.requires_grad], "lr": head_lr}]
+
+        if opt_name == "adamw":
+            return torch.optim.AdamW(param_groups, weight_decay=self.config.training.weight_decay)
+        elif opt_name == "adam":
+            return torch.optim.Adam(param_groups, weight_decay=self.config.training.weight_decay)
+        elif opt_name == "sgd":
+            return torch.optim.SGD(
+                param_groups, weight_decay=self.config.training.weight_decay, momentum=0.9
+            )
+        else:
+            raise ValueError(f"Unsupported optimizer: {opt_name}")
 
     def train_epoch(self, epoch: int) -> Dict[str, float]:
         """Execute one training epoch."""
@@ -94,7 +113,7 @@ class Trainer:
         correct = 0
         total = 0
 
-        for batch_idx, (images, targets) in enumerate(self.train_loader):
+        for images, targets in self.train_loader:
             images = images.to(self.device, non_blocking=True)
             targets = targets.to(self.device, non_blocking=True)
 
@@ -133,7 +152,7 @@ class Trainer:
 
     @torch.no_grad()
     def validate(self) -> Dict[str, float]:
-        """Execute validation pass."""
+        """Execute validation epoch."""
         self.model.eval()
         running_loss = 0.0
         correct = 0
@@ -161,37 +180,22 @@ class Trainer:
         return {"loss": val_loss, "accuracy": val_acc}
 
     def save_checkpoint(self, filename: str, epoch: int, val_acc: float) -> Path:
-        """Save model state dict, optimizer, epoch, and metric."""
+        """Save state dicts and raw dictionary metadata (safe for PyTorch 2.6+ weights_only)."""
         ckpt_path = self.checkpoint_dir / filename
         payload = {
             "epoch": epoch,
             "val_accuracy": val_acc,
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
-            "config": self.config,
+            "config_dict": asdict(self.config),
         }
         torch.save(payload, ckpt_path)
         self.logger.info("Saved checkpoint: %s (Val Acc: %.4f)", ckpt_path, val_acc)
         return ckpt_path
 
-    def load_checkpoint(self, ckpt_path: Path) -> int:
-        """Load state dict and resume training state."""
-        ckpt = torch.load(ckpt_path, map_location=self.device)
-        self.model.load_state_dict(ckpt["model_state_dict"])
-        self.optimizer.load_state_dict(ckpt["optimizer_state_dict"])
-        start_epoch = ckpt.get("epoch", 0) + 1
-        self.best_val_acc = ckpt.get("val_accuracy", 0.0)
-        self.logger.info(
-            "Loaded checkpoint from %s (resuming at epoch %d)", ckpt_path, start_epoch
-        )
-        return start_epoch
-
     def train(self, resume_path: Optional[Path] = None) -> Dict[str, Any]:
-        """Full training loop execution."""
+        """Run complete training cycle."""
         start_epoch = 1
-        if resume_path:
-            start_epoch = self.load_checkpoint(Path(resume_path))
-
         epochs = self.config.training.epochs
         self.logger.info("Starting training for %d epochs on %s", epochs, self.device)
 
@@ -219,18 +223,15 @@ class Trainer:
                 val_metrics["accuracy"],
             )
 
-            # Checkpoint best model
             if val_metrics["accuracy"] > self.best_val_acc:
                 self.best_val_acc = val_metrics["accuracy"]
                 self.best_epoch = epoch
-                self.save_checkpoint("best_model.pt", epoch, self.best_val_acc)
+                self.save_checkpoint(
+                    f"{self.config.experiment_name}_best.pt", epoch, self.best_val_acc
+                )
 
-            # Always save latest
-            self.save_checkpoint("latest_model.pt", epoch, val_metrics["accuracy"])
+            self.save_checkpoint(
+                f"{self.config.experiment_name}_latest.pt", epoch, val_metrics["accuracy"]
+            )
 
-        self.logger.info(
-            "Training complete. Best Val Acc: %.4f at Epoch %d",
-            self.best_val_acc,
-            self.best_epoch,
-        )
         return history

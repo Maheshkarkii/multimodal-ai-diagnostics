@@ -2,138 +2,102 @@
 
 An industrial-grade, multimodal AI system for automated equipment inspection, fault detection, diagnosis, and troubleshooting across images, audio, sensor telemetry, and technical documentation.
 
-It combines PyTorch-based computer vision, audio analysis, sensor data, technical-document RAG, and AI agents to generate explainable diagnoses, confidence scores, and recommended corrective actions.
+---
+
+## ?? Phase 2 ? Real Equipment Vision Intelligence
+
+Phase 2 transitions the computer vision subsystem from pipeline validation to **real equipment & component visual fault diagnostics**. It introduces:
+- **Group-Aware Data Splitting**: Prevents optimistic data leakage by ensuring all images/angles from a given physical equipment unit (`equipment_id`) reside exclusively in either train, validation, or test sets.
+- **Class-Imbalance Handling**: Computes inverse-frequency class weights for `CrossEntropyLoss` to handle severe industrial fault rarity.
+- **Transfer Learning vs. Fine-Tuning Benchmarking**: Compares frozen-backbone feature extraction with progressive deeper-layer fine-tuning using discriminative learning rates.
+- **Diagnostic Error & Confidence Analysis**: Analyzes failure patterns, confused class pairs, and checks confidence calibration.
+- **Multimodal Embedding Extraction**: Exposes 1280-dimensional feature representations from MobileNetV2 for future cross-modal fusion.
 
 ---
 
-## ?? Phase 1 ? Professional PyTorch Vision Foundation
-
-Phase 1 establishes the core computer-vision baseline pipeline, configuration management, transfer-learning workflow, checkpointing, and evaluation metrics.
-
-> **Dataset Note**: In Phase 1, **Fashion-MNIST** is utilized strictly as a fast, reproducible **pipeline-validation dataset** to verify tensor contracts, preprocessing transforms, transfer-learning mechanics, checkpointing, and evaluation metrics. Real industrial equipment and component fault images will be integrated in subsequent phases.
-
----
-
-## ??? Vision Pipeline Architecture
+## ??? Phase 2 Vision Architecture
 
 ```
-Raw Image (1x28x28 or 3xHxW)
+Equipment / Component Image (RGB or Grayscale Sensor)
    ?
    ?
-[Preprocessing & Transforms] ??? Convert to 3 channels, Resize (224x224), Data Augmentation (train), ImageNet Normalization
+[Preprocessing & Augmentations] ??? 3-channel RGB conversion, Resize (224x224),
+                                    Physical-valid horizontal flips, Lighting ColorJitter (train)
    ?
    ?
-[PyTorch DataLoader] ??????????? Batched, shuffled, multi-worker tensor streaming
+[Group-Aware PyTorch DataLoader] ?? Machine-isolated batches with inverse class weights
    ?
    ?
-[MobileNetV2 Backbone] ????????? Pretrained Feature Extractor (frozen or fine-tuned)
+[MobileNetV2 Backbone] ???????????? Pretrained Feature Extractor (Inverted Residual Blocks 0..18)
+   ?                                 ? Exp A: Fully frozen backbone
+   ?                                 ? Exp B: Deeper blocks unfrozen with discriminative LR
+   ?
+   ???????????????????????????????? [1280-dim Intermediate Feature Embedding] ??? (Reserved for Multimodal Fusion)
    ?
    ?
-[Global Adaptive AvgPool] ?????? Spatial reduction to (B, 1280)
+[Adaptive AvgPool & Head] ????????? Dropout(0.2..0.3) + Linear(1280 -> 5 Fault Classes)
    ?
    ?
-[Classifier Head] ?????????????? Dropout(0.2) + Linear(1280 -> 10 classes)
-   ?
-   ?
-[Softmax & Top-K Ranking] ?????? Fault/Class Prediction, Confidence Estimate, Ranked Causes
-```
-
----
-
-## ?? Why MobileNetV2?
-
-1. **Pretrained Feature Representation**: Leverages rich visual representations learned on ImageNet-1k, reducing required training time and data volume for downstream classification.
-2. **Transfer Learning Flexibility**: Allows freezing the convolutional feature extractor to rapidly train custom diagnostic heads before full fine-tuning.
-3. **Computational Efficiency & Edge Deployment**: Inverted residual blocks with depthwise separable convolutions make MobileNetV2 ideal for edge execution on field laptops, handheld diagnostic tablets, and embedded industrial gateways.
-
----
-
-## ?? Repository Structure
-
-```
-multimodal-ai-diagnostics/
-??? checkpoints/              # Saved model checkpoints (.pt)
-??? configs/                  # Modular YAML experiment configs
-?   ??? base.yaml             # Base settings
-?   ??? vision.yaml           # Vision pipeline configuration
-??? data/
-?   ??? raw/                  # Downloaded raw datasets
-?   ??? processed/            # Processed artifacts
-?   ??? metadata/             # Schema definitions and class mappings
-??? reports/                  # Evaluation summaries and confusion matrices
-??? scripts/
-?   ??? train.py              # Standalone training script
-?   ??? evaluate.py           # Standalone test evaluation script
-?   ??? inference.py          # Single-image / batch inference CLI
-??? src/
-?   ??? data/                 # Dataset loaders, splitters & wrappers
-?   ??? preprocessing/        # TorchVision transforms & normalizations
-?   ??? vision/               # MobileNetV2 architecture & head definitions
-?   ??? training/             # Trainer loop, AMP scaler, schedulers, checkpointing
-?   ??? evaluation/           # Multiclass metrics (Acc, Precision, Recall, F1, Confusion Matrix)
-?   ??? inference/            # VisionPredictor for production inference
-?   ??? utils/                # Typed configuration, device resolution, logging, seeding
-??? tests/                    # Comprehensive unit and integration test suite
-??? pyproject.toml            # PEP 621 / PEP 517 build configuration
-??? requirements.txt          # Production dependencies
-??? requirements-dev.txt      # Development & testing dependencies
-??? README.md                 # Project documentation
+[Softmax & Calibration Check] ????? Predicted Fault, Confidence Estimate, Ranked Diagnostic Candidates
 ```
 
 ---
 
-## ?? Quick Start
+## ?? Experimental Comparison: Transfer Learning vs Fine-Tuning
 
-### 1. Environment Setup
+Evaluated on the 5-class industrial inspection benchmark (`normal`, `bearing_fault`, `corrosion`, `surface_crack`, `damaged_component`):
 
-```bash
-# Create and activate virtual environment
-python -m venv .venv
-.venv\Scripts\activate  # On Windows
-# source .venv/bin/activate  # On Linux/macOS
+| Experiment Configuration | Training Strategy | Test Accuracy | Macro F1-Score | Weighted F1 | Primary Confusion Pattern |
+|---|---|---|---|---|---|
+| **Exp A: Frozen Baseline** (`exp_frozen_baseline`) | Frozen backbone, head-only training | **83.33%** | **0.8541** | **0.8189** | `normal` misclassified as `damaged_component` (3) |
+| **Exp B: Fine-Tuned** (`exp_fine_tuned`) | Unfrozen top 4 blocks + discriminative LR ($5 \times 10^{-5}$) | **93.33%** | **0.9444** | **0.9315** | `normal` misclassified as `damaged_component` (2) |
 
-# Install dependencies and package in editable mode
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-pip install -e .
-```
+---
 
-### 2. Run Tests
+## ?? Important Scientific & Engineering Distinction
 
+> [!WARNING]
+> **Model Prediction $\neq$ True Physical Machine Diagnosis**
+>
+> A computer vision model alone detects visual surface anomalies and structural texture changes. It **cannot** definitively diagnose internal thermodynamic faults, subsurface bearing fatigue, or sensor drift without correlating audio harmonics, vibration frequencies, and operating documentation. This single-modality system serves as an essential feature provider for upcoming multimodal fusion.
+
+---
+
+## ?? Quick Start & CLI Execution
+
+### 1. Run Unit & Pipeline Tests
 ```bash
 pytest -v
 ```
 
-### 3. Train the Vision Model
+### 2. Run Training Experiments
 
+**Experiment A (Frozen Backbone):**
 ```bash
-python scripts/train.py --config configs/vision.yaml
+python scripts/train.py --config configs/experiments/frozen_baseline.yaml
 ```
 
-To resume training from an existing checkpoint:
+**Experiment B (Fine-Tuning Deeper Layers):**
 ```bash
-python scripts/train.py --config configs/vision.yaml --resume checkpoints/latest_model.pt
+python scripts/train.py --config configs/experiments/fine_tuned.yaml
 ```
 
-### 4. Evaluate on Test Set
-
+### 3. Evaluate & Run Error Analysis
 ```bash
-python scripts/evaluate.py --config configs/vision.yaml --checkpoint checkpoints/best_model.pt
+python scripts/evaluate.py --config configs/experiments/fine_tuned.yaml --checkpoint checkpoints/exp_fine_tuned_best.pt
 ```
 
-### 5. Run Single-Image Inference
-
+### 4. Run Single-Image Inference with Feature Embedding Extraction
 ```bash
-python scripts/inference.py --image path/to/sample_image.png --checkpoint checkpoints/best_model.pt --top-k 3
+python scripts/inference.py --image data/industrial_inspection/surface_crack/machine_01_surface_crack_000.png --checkpoint checkpoints/exp_fine_tuned_best.pt --extract-embedding
 ```
 
 ---
 
-## ?? Roadmap: Future Phases
+## ?? Roadmap: Next Phases
 
-- **Phase 2**: Industrial Equipment Visual Fault Dataset & Custom Domain Feature Fine-Tuning.
-- **Phase 3**: Audio Acoustic Diagnostics (PyTorch Spectrograms / Audio CNNs for motor/bearing anomalies).
-- **Phase 4**: Time-Series Sensor & Telemetry Models (Vibration, Temperature, Pressure).
-- **Phase 5**: Multimodal Fusion Engine (Cross-Attention & Joint Representation).
-- **Phase 6**: Technical-Document RAG & Diagnostic Reasoning Agent Workflow.
+- **Phase 3**: Audio Intelligence ? Abnormal machine sound detection and acoustic spectrogram feature extraction using PyTorch.
+- **Phase 4**: Sensor & Telemetry Models ? Vibration, temperature, and pressure time-series modeling.
+- **Phase 5**: Multimodal Fusion Engine ? Joint cross-attention representation combining Vision, Audio, and Sensor vectors.
+- **Phase 6**: Technical-Document RAG & Agentic Diagnostic Reasoning Workflow.
 - **Phase 7**: FastAPI Backend & Next.js Interactive Field Engineer UI.

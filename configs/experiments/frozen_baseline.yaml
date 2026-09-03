@@ -1,0 +1,52 @@
+﻿experiment_name: "exp_frozen_baseline"
+
+system:
+  device: "auto"
+  seed: 42
+  deterministic: true
+  num_workers: 0
+  pin_memory: true
+  output_dir: "reports/experiments/frozen_baseline"
+  checkpoint_dir: "checkpoints"
+  log_level: "INFO"
+
+dataset:
+  name: "industrial_fault_inspection"
+  dataset_dir: "data/industrial_inspection"
+  image_size: 224
+  val_split: 0.15
+  test_split: 0.15
+  num_classes: 5
+  classes:
+    - "normal"
+    - "bearing_fault"
+    - "corrosion"
+    - "surface_crack"
+    - "damaged_component"
+  group_by: "equipment_id"
+  augmentations:
+    horizontal_flip: true
+    rotation_degrees: 15.0
+    color_jitter_brightness: 0.2
+    color_jitter_contrast: 0.2
+
+model:
+  name: "mobilenet_v2"
+  num_classes: 5
+  pretrained: true
+  freeze_backbone: true
+  unfreeze_layers: 0
+  dropout: 0.2
+
+training:
+  batch_size: 16
+  epochs: 3
+  learning_rate: 0.001
+  backbone_learning_rate: 0.0001
+  weight_decay: 0.0001
+  optimizer: "adamw"
+  scheduler: "cosine"
+  mixed_precision: true
+  early_stopping_patience: 3
+  gradient_clip_val: 1.0
+  use_class_weights: true
