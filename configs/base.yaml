@@ -1,0 +1,37 @@
+﻿experiment_name: "baseline_diagnostics"
+
+system:
+  device: "auto"
+  seed: 42
+  deterministic: true
+  num_workers: 2
+  pin_memory: true
+  output_dir: "experiments/outputs"
+  log_level: "INFO"
+
+dataset:
+  name: "industrial_equipment_diagnostics"
+  data_dir: "data/raw"
+  processed_dir: "data/processed"
+  image_size: 224
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+
+model:
+  name: "resnet18"
+  num_classes: 5
+  pretrained: true
+  in_channels: 3
+  dropout: 0.2
+
+training:
+  batch_size: 32
+  epochs: 20
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "adamw"
+  scheduler: "cosine"
+  mixed_precision: true
+  early_stopping_patience: 5
+  gradient_clip_val: 1.0
