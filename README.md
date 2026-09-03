@@ -4,100 +4,100 @@ An industrial-grade, multimodal AI system for automated equipment inspection, fa
 
 ---
 
-## ?? Phase 2 ? Real Equipment Vision Intelligence
+## ?? Phase 3 ? Acoustic Intelligence for Machine Fault Detection
 
-Phase 2 transitions the computer vision subsystem from pipeline validation to **real equipment & component visual fault diagnostics**. It introduces:
-- **Group-Aware Data Splitting**: Prevents optimistic data leakage by ensuring all images/angles from a given physical equipment unit (`equipment_id`) reside exclusively in either train, validation, or test sets.
-- **Class-Imbalance Handling**: Computes inverse-frequency class weights for `CrossEntropyLoss` to handle severe industrial fault rarity.
-- **Transfer Learning vs. Fine-Tuning Benchmarking**: Compares frozen-backbone feature extraction with progressive deeper-layer fine-tuning using discriminative learning rates.
-- **Diagnostic Error & Confidence Analysis**: Analyzes failure patterns, confused class pairs, and checks confidence calibration.
-- **Multimodal Embedding Extraction**: Exposes 1280-dimensional feature representations from MobileNetV2 for future cross-modal fusion.
+Phase 3 introduces PyTorch-native **acoustic signal processing and diagnostic sound classification** for industrial rotating equipment (motors, pumps, compressors, turbines).
+
+Key capabilities introduced:
+- **Physics-Informed Signal Preprocessing**: Converts raw 1D acoustic pressure waveforms into 2D **Log-Mel Spectrograms** (64 filterbanks, 1024-point FFT, 512 hop length) to capture acoustic frequency peaks, periodic impact spikes, and harmonic sidebands.
+- **Variable-Length Handling**: Deterministic zero-padding for short clips and center-window cropping for extended continuous audio streams.
+- **SpecAugment Regularization**: Time and frequency masking transforms to prevent overfitting to spurious ambient tones or narrow-band shop-floor background noise.
+- **Acoustic CNN Architecture**: 4-stage hierarchical 2D convolutional network with adaptive pooling and intermediate **512-dimensional acoustic feature embedding extraction** for cross-modal fusion.
+- **Leakage Prevention by Machine Entity**: Group-based splitting (`machine_id`) ensures audio captured from the same equipment unit never leaks across training and evaluation splits.
 
 ---
 
-## ??? Phase 2 Vision Architecture
+## ??? Acoustic Processing & Model Architecture
 
 ```
-Equipment / Component Image (RGB or Grayscale Sensor)
+Raw Machine Acoustic Recording (.wav @ 16 kHz)
    ?
    ?
-[Preprocessing & Augmentations] ??? 3-channel RGB conversion, Resize (224x224),
-                                    Physical-valid horizontal flips, Lighting ColorJitter (train)
+[Audio Signal Standardizer] ???? Mono conversion, 16kHz resampling, deterministic padding/cropping (3.0s)
    ?
    ?
-[Group-Aware PyTorch DataLoader] ?? Machine-isolated batches with inverse class weights
+[Log-Mel Filterbank Engine] ???? STFT (n_fft=1024, hop=512) -> Mel Scale (64 bands) -> dB normalization
    ?
    ?
-[MobileNetV2 Backbone] ???????????? Pretrained Feature Extractor (Inverted Residual Blocks 0..18)
-   ?                                 ? Exp A: Fully frozen backbone
-   ?                                 ? Exp B: Deeper blocks unfrozen with discriminative LR
-   ?
-   ???????????????????????????????? [1280-dim Intermediate Feature Embedding] ??? (Reserved for Multimodal Fusion)
+[SpecAugment (Train-only)] ????? Frequency & Time masking
    ?
    ?
-[Adaptive AvgPool & Head] ????????? Dropout(0.2..0.3) + Linear(1280 -> 5 Fault Classes)
+[Acoustic 2D CNN Backbone] ????? 4x [Conv2d -> BatchNorm2d -> ReLU -> MaxPool2d] (32..256 channels)
    ?
    ?
-[Softmax & Calibration Check] ????? Predicted Fault, Confidence Estimate, Ranked Diagnostic Candidates
+[Global Adaptive AvgPool] ?????? Spatial reduction to (B, 256)
+   ?
+   ????????????????????????????? [512-dim Acoustic Feature Embedding] ??? (Reserved for Multimodal Fusion)
+   ?
+   ?
+[Linear Diagnostic Head] ??????? Dropout(0.3) + Linear(512 -> 5 Acoustic Anomaly Classes)
+   ?
+   ?
+[Softmax & Confidence Metric] ??? Predicted Acoustic Anomaly, Confidence Score, Top-K Failure Candidates
 ```
 
 ---
 
-## ?? Experimental Comparison: Transfer Learning vs Fine-Tuning
+## ?? Acoustic Diagnostic Benchmark Results
 
-Evaluated on the 5-class industrial inspection benchmark (`normal`, `bearing_fault`, `corrosion`, `surface_crack`, `damaged_component`):
+Evaluated on the 5-class machine sound dataset (`normal_operation`, `bearing_defect`, `loose_component`, `rotor_imbalance`, `cavitation_anomaly`):
 
-| Experiment Configuration | Training Strategy | Test Accuracy | Macro F1-Score | Weighted F1 | Primary Confusion Pattern |
-|---|---|---|---|---|---|
-| **Exp A: Frozen Baseline** (`exp_frozen_baseline`) | Frozen backbone, head-only training | **83.33%** | **0.8541** | **0.8189** | `normal` misclassified as `damaged_component` (3) |
-| **Exp B: Fine-Tuned** (`exp_fine_tuned`) | Unfrozen top 4 blocks + discriminative LR ($5 \times 10^{-5}$) | **93.33%** | **0.9444** | **0.9315** | `normal` misclassified as `damaged_component` (2) |
+- **Test Accuracy**: **96.00%**
+- **Macro F1-Score**: **0.9596**
+- **Weighted F1-Score**: **0.9596**
+- **Confidence Calibration**:
+  - Correct predictions mean confidence: **$0.782$**
+  - Misclassified predictions mean confidence: **$0.394$**
+- **Error Analysis**: Isolated error (`loose_component` $\rightarrow$ `normal_operation`, 1 sample) occurred when mechanical impacts were masked by higher baseline motor hum.
 
 ---
 
-## ?? Important Scientific & Engineering Distinction
+## ?? Scientific & Engineering Distinction
 
 > [!WARNING]
-> **Model Prediction $\neq$ True Physical Machine Diagnosis**
+> **Acoustic Anomaly Detection $\neq$ Complete Machine Root-Cause Diagnosis**
 >
-> A computer vision model alone detects visual surface anomalies and structural texture changes. It **cannot** definitively diagnose internal thermodynamic faults, subsurface bearing fatigue, or sensor drift without correlating audio harmonics, vibration frequencies, and operating documentation. This single-modality system serves as an essential feature provider for upcoming multimodal fusion.
+> An acoustic classifier detects anomalous auditory frequency signatures (such as ultrasonic cavitation hiss or bearing impact ringing). However, machine sound is sensitive to acoustic reflection, surrounding shop-floor background noise, and microphone positioning. Definitive autonomous diagnosis requires correlating acoustic embeddings with visual surface wear and time-series sensor telemetry (Phase 4 & 5).
 
 ---
 
-## ?? Quick Start & CLI Execution
+## ?? CLI Execution Commands
 
-### 1. Run Unit & Pipeline Tests
+### 1. Run Unit & Integration Tests
 ```bash
 pytest -v
 ```
 
-### 2. Run Training Experiments
-
-**Experiment A (Frozen Backbone):**
+### 2. Train Acoustic CNN
 ```bash
-python scripts/train.py --config configs/experiments/frozen_baseline.yaml
+python scripts/train_audio.py --config configs/audio.yaml
 ```
 
-**Experiment B (Fine-Tuning Deeper Layers):**
+### 3. Evaluate & Error Analysis
 ```bash
-python scripts/train.py --config configs/experiments/fine_tuned.yaml
+python scripts/evaluate_audio.py --config configs/audio.yaml --checkpoint checkpoints/acoustic_fault_baseline_best.pt
 ```
 
-### 3. Evaluate & Run Error Analysis
+### 4. Run Audio Inference with 512-dim Embedding Extraction
 ```bash
-python scripts/evaluate.py --config configs/experiments/fine_tuned.yaml --checkpoint checkpoints/exp_fine_tuned_best.pt
-```
-
-### 4. Run Single-Image Inference with Feature Embedding Extraction
-```bash
-python scripts/inference.py --image data/industrial_inspection/surface_crack/machine_01_surface_crack_000.png --checkpoint checkpoints/exp_fine_tuned_best.pt --extract-embedding
+python scripts/inference_audio.py --audio data/audio/raw/bearing_defect/pump01_bearing_defect_000.wav --checkpoint checkpoints/acoustic_fault_baseline_best.pt --extract-embedding
 ```
 
 ---
 
 ## ?? Roadmap: Next Phases
 
-- **Phase 3**: Audio Intelligence ? Abnormal machine sound detection and acoustic spectrogram feature extraction using PyTorch.
-- **Phase 4**: Sensor & Telemetry Models ? Vibration, temperature, and pressure time-series modeling.
-- **Phase 5**: Multimodal Fusion Engine ? Joint cross-attention representation combining Vision, Audio, and Sensor vectors.
-- **Phase 6**: Technical-Document RAG & Agentic Diagnostic Reasoning Workflow.
-- **Phase 7**: FastAPI Backend & Next.js Interactive Field Engineer UI.
+- **Phase 4**: Sensor Intelligence ? Time-series telemetry representations (Vibration, Temperature, RPM, Current, Pressure).
+- **Phase 5**: Multimodal Fusion Engine ? Joint cross-attention module fusing Vision (1280-dim), Audio (512-dim), and Sensor embeddings.
+- **Phase 6**: Technical-Document RAG & Agentic Diagnostic Reasoning.
+- **Phase 7**: FastAPI Backend & Next.js UI.

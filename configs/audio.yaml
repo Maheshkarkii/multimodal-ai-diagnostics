@@ -1,0 +1,51 @@
+﻿experiment_name: "acoustic_fault_baseline"
+
+system:
+  device: "auto"
+  seed: 42
+  deterministic: true
+  num_workers: 0
+  pin_memory: true
+  output_dir: "reports/experiments/audio"
+  checkpoint_dir: "checkpoints"
+  log_level: "INFO"
+
+dataset:
+  name: "machine_acoustic_diagnostics"
+  dataset_dir: "data/audio/raw"
+  sample_rate: 16000
+  duration: 3.0  # target duration in seconds (48,000 samples)
+  n_mels: 64
+  n_fft: 1024
+  hop_length: 512
+  f_min: 50.0
+  f_max: 8000.0
+  val_split: 0.15
+  test_split: 0.15
+  num_classes: 5
+  classes:
+    - "normal_operation"
+    - "bearing_defect"
+    - "loose_component"
+    - "rotor_imbalance"
+    - "cavitation_anomaly"
+  group_by: "machine_id"  # grouped splitting prevents acoustic leakage across identical motors
+
+model:
+  name: "acoustic_cnn"
+  num_classes: 5
+  in_channels: 1
+  embedding_dim: 512
+  dropout: 0.3
+
+training:
+  batch_size: 16
+  epochs: 5
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "adamw"
+  scheduler: "cosine"
+  mixed_precision: true
+  early_stopping_patience: 3
+  gradient_clip_val: 1.0
+  use_class_weights: true
