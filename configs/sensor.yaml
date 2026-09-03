@@ -1,0 +1,59 @@
+﻿experiment_name: "sensor_state_and_anomaly_baseline"
+
+system:
+  device: "auto"
+  seed: 42
+  deterministic: true
+  num_workers: 0
+  pin_memory: true
+  output_dir: "reports/experiments/sensor"
+  checkpoint_dir: "checkpoints"
+  log_level: "INFO"
+
+dataset:
+  name: "industrial_multivariate_telemetry"
+  dataset_dir: "data/sensor/raw/machine_telemetry.csv"
+  val_split: 0.15
+  test_split: 0.15
+  num_classes: 5
+  classes:
+    - "normal"
+    - "bearing_overheat_wear"
+    - "rotor_unbalance"
+    - "hydraulic_pressure_loss"
+    - "electrical_overcurrent"
+  group_by: "machine_id"
+  timestamp_column: "timestamp"
+  target_column: "fault_label"
+  feature_columns:
+    - "temperature_c"
+    - "vibration_rms_g"
+    - "rotational_speed_rpm"
+    - "motor_current_a"
+    - "hydraulic_pressure_bar"
+    - "load_percentage"
+
+model:
+  name: "sensor_mlp"
+  num_classes: 5
+  in_features: 6
+  hidden_dims: [128, 256, 128]
+  embedding_dim: 256
+  dropout: 0.2
+
+anomaly_detector:
+  method: "isolation_forest"  # "isolation_forest" or "envelope"
+  contamination: 0.05
+  n_estimators: 100
+
+training:
+  batch_size: 32
+  epochs: 15
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "adamw"
+  scheduler: "cosine"
+  mixed_precision: false  # Tabular features perform best on standard precision
+  early_stopping_patience: 5
+  gradient_clip_val: 1.0
+  use_class_weights: true

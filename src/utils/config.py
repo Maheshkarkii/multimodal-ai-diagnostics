@@ -1,5 +1,5 @@
 ﻿"""
-Unified Experiment Configuration system supporting Vision, Audio, and future sensor modalities.
+Unified Experiment Configuration system supporting Vision, Audio, and Sensor Telemetry.
 """
 
 from dataclasses import dataclass, field, asdict
@@ -31,6 +31,13 @@ class AugmentationConfig:
 
 
 @dataclass
+class AnomalyDetectorConfig:
+    method: str = "isolation_forest"
+    contamination: float = 0.05
+    n_estimators: int = 100
+
+
+@dataclass
 class DatasetConfig:
     name: str = "industrial_diagnostics"
     dataset_dir: str = "data/raw"
@@ -53,15 +60,20 @@ class DatasetConfig:
         "fault_4",
     ])
     group_by: Optional[str] = None
+    timestamp_column: Optional[str] = None
+    target_column: Optional[str] = None
+    feature_columns: Optional[List[str]] = None
     augmentations: AugmentationConfig = field(default_factory=AugmentationConfig)
 
 
 @dataclass
 class ModelConfig:
-    name: str = "mobilenet_v2"
+    name: str = "sensor_mlp"
     num_classes: int = 5
     in_channels: int = 3
-    embedding_dim: int = 512
+    in_features: int = 6
+    hidden_dims: List[int] = field(default_factory=lambda: [128, 256, 128])
+    embedding_dim: int = 256
     pretrained: bool = True
     freeze_backbone: bool = True
     unfreeze_layers: Optional[int] = None
@@ -89,6 +101,7 @@ class ExperimentConfig:
     system: SystemConfig = field(default_factory=SystemConfig)
     dataset: DatasetConfig = field(default_factory=DatasetConfig)
     model: ModelConfig = field(default_factory=ModelConfig)
+    anomaly_detector: AnomalyDetectorConfig = field(default_factory=AnomalyDetectorConfig)
     training: TrainingConfig = field(default_factory=TrainingConfig)
 
     @classmethod
@@ -111,6 +124,12 @@ class ExperimentConfig:
         else:
             aug_cfg = AugmentationConfig()
 
+        anom_data = d.get("anomaly_detector", {})
+        if isinstance(anom_data, dict):
+            anom_cfg = AnomalyDetectorConfig(**anom_data)
+        else:
+            anom_cfg = AnomalyDetectorConfig()
+
         model_data = d.get("model", {})
         training_data = d.get("training", {})
         system_data = d.get("system", {})
@@ -120,6 +139,7 @@ class ExperimentConfig:
             system=SystemConfig(**system_data),
             dataset=DatasetConfig(augmentations=aug_cfg, **dataset_data),
             model=ModelConfig(**model_data),
+            anomaly_detector=anom_cfg,
             training=TrainingConfig(**training_data),
         )
 

@@ -4,100 +4,99 @@ An industrial-grade, multimodal AI system for automated equipment inspection, fa
 
 ---
 
-## ?? Phase 3 ? Acoustic Intelligence for Machine Fault Detection
+## ?? Phase 4 ? Sensor Intelligence & Machine-State Modeling
 
-Phase 3 introduces PyTorch-native **acoustic signal processing and diagnostic sound classification** for industrial rotating equipment (motors, pumps, compressors, turbines).
+Phase 4 establishes the PyTorch multivariate telemetry subsystem for continuous machine operational state modeling and unsupervised anomaly detection.
 
 Key capabilities introduced:
-- **Physics-Informed Signal Preprocessing**: Converts raw 1D acoustic pressure waveforms into 2D **Log-Mel Spectrograms** (64 filterbanks, 1024-point FFT, 512 hop length) to capture acoustic frequency peaks, periodic impact spikes, and harmonic sidebands.
-- **Variable-Length Handling**: Deterministic zero-padding for short clips and center-window cropping for extended continuous audio streams.
-- **SpecAugment Regularization**: Time and frequency masking transforms to prevent overfitting to spurious ambient tones or narrow-band shop-floor background noise.
-- **Acoustic CNN Architecture**: 4-stage hierarchical 2D convolutional network with adaptive pooling and intermediate **512-dimensional acoustic feature embedding extraction** for cross-modal fusion.
-- **Leakage Prevention by Machine Entity**: Group-based splitting (`machine_id`) ensures audio captured from the same equipment unit never leaks across training and evaluation splits.
+- **Leakage-Safe Preprocessing**: Implemented [`SensorPreprocessor`](file:///C:/Users/Mahesh%20Karki/Downloads/Mahesh/multimodal-ai-diagnostics/src/sensor/preprocessing/sensor_scaler.py) ensuring imputation medians and `StandardScaler` parameters are fitted **strictly on the training split** and persisted inside checkpoints to prevent data leakage.
+- **Group-Aware Splitting by Asset ID**: Telemetry observations from a given machine (`machine_id`) are completely isolated across training, validation, and test splits.
+- **Multivariate Sensor MLP & 256-dim Embedding Extraction**: Built [`SensorMLP`](file:///C:/Users/Mahesh%20Karki/Downloads/Mahesh/multimodal-ai-diagnostics/src/sensor/models/sensor_mlp.py) extracting compact **256-dimensional numerical sensor embeddings** for cross-modal fusion.
+- **Dual-Capability Architecture**:
+  - **Capability A (State Classification)**: Identifies specific failure operating modes (`bearing_overheat_wear`, `rotor_unbalance`, `hydraulic_pressure_loss`, `electrical_overcurrent`, `normal`).
+  - **Capability B (Anomaly Detection & Operating Envelopes)**: Employs `IsolationForest` and $\sigma$-envelope boundaries to flag unprecedented deviations and compute continuous anomaly scores $[0.0 \dots 1.0]$.
+- **Permutation Feature Importance**: Quantifies the relative percentage drop in Macro F1 when specific sensor features are perturbed.
 
 ---
 
-## ??? Acoustic Processing & Model Architecture
+## ??? Sensor Processing & Architecture
 
 ```
-Raw Machine Acoustic Recording (.wav @ 16 kHz)
+Raw Multivariate Sensor Telemetry (Temperature, Vibration, RPM, Current, Pressure, Load)
    ?
    ?
-[Audio Signal Standardizer] ???? Mono conversion, 16kHz resampling, deterministic padding/cropping (3.0s)
+[SensorDataValidator] ????????? Schema verification, missing-value check, machine ID validation
    ?
    ?
-[Log-Mel Filterbank Engine] ???? STFT (n_fft=1024, hop=512) -> Mel Scale (64 bands) -> dB normalization
+[Leakage-Safe Preprocessor] ??? Median imputation & StandardScaler (Fitted strictly on Train partition)
+   ?
+   ???????????????????????????? [SensorAnomalyDetector] ??? Isolation Forest + Normal Envelope -> Anomaly Score [0..1]
    ?
    ?
-[SpecAugment (Train-only)] ????? Frequency & Time masking
+[PyTorch SensorMLP Backbone] ?? [Linear(6->128) -> BN -> ReLU -> Dropout] -> [Linear(128->256) -> BN -> ReLU]
+   ?
+   ???????????????????????????? [256-dim Sensor Feature Embedding] ??? (Reserved for Multimodal Fusion)
    ?
    ?
-[Acoustic 2D CNN Backbone] ????? 4x [Conv2d -> BatchNorm2d -> ReLU -> MaxPool2d] (32..256 channels)
+[Classification Head] ????????? Dropout(0.2) + Linear(256 -> 5 Machine State Classes)
    ?
    ?
-[Global Adaptive AvgPool] ?????? Spatial reduction to (B, 256)
-   ?
-   ????????????????????????????? [512-dim Acoustic Feature Embedding] ??? (Reserved for Multimodal Fusion)
-   ?
-   ?
-[Linear Diagnostic Head] ??????? Dropout(0.3) + Linear(512 -> 5 Acoustic Anomaly Classes)
-   ?
-   ?
-[Softmax & Confidence Metric] ??? Predicted Acoustic Anomaly, Confidence Score, Top-K Failure Candidates
+[Softmax & Confidence Metric] ?? Predicted Machine Operating State, Confidence Score, Ranked Candidates
 ```
 
 ---
 
-## ?? Acoustic Diagnostic Benchmark Results
+## ?? Sensor Diagnostic Benchmark Results
 
-Evaluated on the 5-class machine sound dataset (`normal_operation`, `bearing_defect`, `loose_component`, `rotor_imbalance`, `cavitation_anomaly`):
+Evaluated on the 5-class multivariate telemetry benchmark across unseen industrial machine assets:
 
-- **Test Accuracy**: **96.00%**
-- **Macro F1-Score**: **0.9596**
-- **Weighted F1-Score**: **0.9596**
-- **Confidence Calibration**:
-  - Correct predictions mean confidence: **$0.782$**
-  - Misclassified predictions mean confidence: **$0.394$**
-- **Error Analysis**: Isolated error (`loose_component` $\rightarrow$ `normal_operation`, 1 sample) occurred when mechanical impacts were masked by higher baseline motor hum.
+- **Test Classification Accuracy**: **100.0%**
+- **Macro F1-Score**: **1.0000**
+- **Weighted F1-Score**: **1.0000**
+- **Permutation Feature Importance (Relative Impact)**:
+  - `vibration_rms_g`: **96.27%**
+  - `rotational_speed_rpm`: **3.73%**
+- **Anomaly Detection Calibration**:
+  - Normal sample anomaly score: **$0.211$**
+  - High-temperature/vibration anomalous sample: **$0.784$** (Envelope deviation: $>5.4\sigma$)
 
 ---
 
 ## ?? Scientific & Engineering Distinction
 
 > [!WARNING]
-> **Acoustic Anomaly Detection $\neq$ Complete Machine Root-Cause Diagnosis**
+> **Anomaly $\neq$ Physical Fault & Sensor State $\neq$ Root-Cause Diagnosis**
 >
-> An acoustic classifier detects anomalous auditory frequency signatures (such as ultrasonic cavitation hiss or bearing impact ringing). However, machine sound is sensitive to acoustic reflection, surrounding shop-floor background noise, and microphone positioning. Definitive autonomous diagnosis requires correlating acoustic embeddings with visual surface wear and time-series sensor telemetry (Phase 4 & 5).
+> An anomalous telemetry reading can stem from sensor drift, intermittent load spikes, or ambient temperature fluctuations without constituting physical hardware damage. True root-cause troubleshooting requires synthesizing sensor telemetry with acoustic harmonics (Phase 3) and visual surface inspection (Phase 2).
 
 ---
 
 ## ?? CLI Execution Commands
 
-### 1. Run Unit & Integration Tests
+### 1. Run All Test Suites
 ```bash
 pytest -v
 ```
 
-### 2. Train Acoustic CNN
+### 2. Train Sensor State & Anomaly Model
 ```bash
-python scripts/train_audio.py --config configs/audio.yaml
+python scripts/train_sensor.py --config configs/sensor.yaml
 ```
 
-### 3. Evaluate & Error Analysis
+### 3. Evaluate Model on Test Machines & Run Error Analysis
 ```bash
-python scripts/evaluate_audio.py --config configs/audio.yaml --checkpoint checkpoints/acoustic_fault_baseline_best.pt
+python scripts/evaluate_sensor.py --config configs/sensor.yaml --checkpoint checkpoints/sensor_state_and_anomaly_baseline_best.pt
 ```
 
-### 4. Run Audio Inference with 512-dim Embedding Extraction
+### 4. Run Sensor Inference with 256-dim Embedding Extraction
 ```bash
-python scripts/inference_audio.py --audio data/audio/raw/bearing_defect/pump01_bearing_defect_000.wav --checkpoint checkpoints/acoustic_fault_baseline_best.pt --extract-embedding
+python scripts/inference_sensor.py --json-input '{"temperature_c": 96.5, "vibration_rms_g": 4.8, "rotational_speed_rpm": 1485.0, "motor_current_a": 10.4, "hydraulic_pressure_bar": 141.0, "load_percentage": 70.0}' --extract-embedding
 ```
 
 ---
 
 ## ?? Roadmap: Next Phases
 
-- **Phase 4**: Sensor Intelligence ? Time-series telemetry representations (Vibration, Temperature, RPM, Current, Pressure).
-- **Phase 5**: Multimodal Fusion Engine ? Joint cross-attention module fusing Vision (1280-dim), Audio (512-dim), and Sensor embeddings.
-- **Phase 6**: Technical-Document RAG & Agentic Diagnostic Reasoning.
+- **Phase 5**: Multimodal Fusion Engine ? Joint cross-attention module fusing Vision (1280-dim), Audio (512-dim), and Sensor (256-dim) feature embeddings.
+- **Phase 6**: Technical-Document RAG & Agentic Diagnostic Reasoning Workflow.
 - **Phase 7**: FastAPI Backend & Next.js UI.
