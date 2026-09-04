@@ -1,0 +1,16 @@
+﻿server:
+  host: "0.0.0.0"
+  port: 8000
+  reload: false
+  workers: 1
+  api_prefix: "/api/v1"
+  title: "AI Field Engineer - Diagnostic & Troubleshooting API"
+  version: "1.0.0"
+  allowed_origins:
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+    - "http://localhost:8000"
+  temp_upload_dir: "data/temp_uploads"
+  max_image_size_mb: 15.0
+  max_audio_size_mb: 25.0
+  request_timeout_seconds: 60.0
