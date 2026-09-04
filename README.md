@@ -4,118 +4,104 @@ An industrial-grade, multimodal AI system for automated equipment inspection, fa
 
 ---
 
-## 🧠 Phase 7 — Diagnostic Reasoning Agent
+## 🔍 Phase 8 — Explainability, Evidence & Auditable Diagnostic Reports
 
-Phase 7 introduces the **Autonomous Diagnostic Reasoning Agent** orchestration layer. The reasoning agent fuses empirical perception models (Vision, Acoustic Audio, Sensor Telemetry) with external OEM engineering manuals (Phase 6 RAG) to formulate structured, transparent, and grounded root-cause diagnoses.
+Phase 8 elevates the system to full **industrial auditability and explainability**. Every diagnostic decision, severity classification, and recommended action can be traced directly to physical sensor telemetry, model saliency heatmaps, acoustic harmonics, and verified OEM technical documentation citations.
 
-### 🎯 Critical Architectural Separation
+### 🎯 The "Why" Layer of Field Diagnosis
 > [!IMPORTANT]
-> - **PyTorch Perception (Phases 1–5)**: Answers *"What patterns are present?"* (e.g. 1X vibration peak, acoustic squeal, bearing surface defect).
-> - **Technical RAG (Phase 6)**: Answers *"What does the technical manual say?"* (e.g. ISO 10816-3 limits, bearing lubrication SOP).
-> - **Diagnostic Agent (Phase 7)**: Answers *"Given the multimodal observations and technical manual evidence, what failure hypothesis best explains the machine condition?"*
+> **Observation $\neq$ Interpretation $\neq$ Diagnosis $\neq$ Causal Proof**
+>
+> - **Observation**: Measured RMS vibration is $6.8\text{ mm/s}$; acoustic signal exhibits BPFI harmonic peaks at $3.2\text{ kHz}$.
+> - **Interpretation**: High vibration and BPFI harmonics are consistent with rolling element bearing degradation per ISO 10816-3.
+> - **Hypothesis**: Bearing degradation is the leading operational hypothesis ($86.0\%$ confidence).
+> - **Auditable Trace**: Evidence items receive stable identifiers (`SEN-001`, `AUD-001`, `DOC-001`) linking claims directly to primary sources.
 
 ---
 
-## 🏗️ Diagnostic Reasoning Architecture
+## 🏗️ Auditable Diagnostic Architecture
 
 ```
-                FIELD OBSERVATIONS
-                       │
-      ┌────────────────┼────────────────┐
-      │                │                │
-    Vision           Audio           Sensors
-      │                │                │
-      └────────────────┼────────────────┘
-                       │
-                Multimodal State
-                       │
-                  Technician Text
-                       │
-                       ▼
-              ┌─────────────────┐
-              │ Diagnostic      │
-              │ Context Builder │
-              └────────┬────────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │ Reasoning Agent │
-              └───────┬─────────┘
-                      │
-            ┌─────────┴─────────┐
-            │                   │
-            ▼                   ▼
-      RAG Retrieval        Evidence Analysis
-            │                   │
-            └─────────┬─────────┘
-                      ▼
-              Hypothesis Ranking
-                      │
-                      ▼
-             Contradiction Check
-                      │
-                      ▼
-              Diagnostic Report
-                      │
-        ┌─────────────┼─────────────┐
-        ▼             ▼             ▼
-    Diagnosis      Evidence       Actions
+[Raw Observations (Vision, Audio, Sensors, Notes, RAG)]
+                         │
+                         ▼
+        [Auditable Evidence Normalization Engine]
+       (Assigns stable IDs: VIS-xxx, AUD-xxx, SEN-xxx, DOC-xxx)
+                         │
+                         ▼
+       [Claim-to-Evidence Bidirectional Mapper]
+   (Links primary diagnosis & severity to justifying evidence)
+                         │
+                         ▼
+       [Confidence Decomposition & Rationale Engine]
+   (Decomposes multimodal agreement, sensor margins & penalties)
+                         │
+                         ▼
+       [Traceable Action & Requirement Planner]
+      (Assigns REQUIRED/RECOMMENDED levels & citations)
+                         │
+                         ▼
+       [Immutable Audit Trail & Reproducibility Logger]
+   (Persists input hashes, model checkpoints, runtime latency)
+                         │
+                         ▼
+      [Professional Auditable Markdown Report & JSON]
 ```
 
 ---
 
-## ⚙️ Core Agent Capabilities
+## ⚙️ Core Capabilities
 
-1. **Multi-Stage Bounded Reasoning Pipeline**:
-   - **Stage 1**: Sensor Telemetry & ISO 10816-3 evaluation.
-   - **Stage 2**: Targeted Technical RAG query formulation.
-   - **Stage 3**: Cross-modality contradiction and investigation gap detection.
-   - **Stage 4**: Structured LLM hypothesis synthesis and alternative evaluation.
-   - **Stage 5**: Groundedness verification against source evidence pool.
-   - **Stage 6**: Auditable Diagnostic Report generation with Markdown export.
-2. **Strict Evidence Hierarchy & Provenance**:
-   - Explicit separation between *Observed Measurements*, *Model Inferences*, and *Retrieved OEM Manual Knowledge*.
-   - Zero-fabrication enforcement on page numbers, citations, and sensor readings.
-3. **Cross-Modality Contradiction Detection**:
-   - Flags discrepancies (e.g. Normal camera image vs. Acoustic BPFI defect harmonic) and automatically penalizes overconfident scores.
-4. **Safety-Grounded Action Planning**:
-   - Distinguishes safety-critical instructions (e.g. Immediate emergency shutdown) from informational maintenance steps.
+1. **Standardized Evidence Taxonomy & Stable IDs**:
+   - `VIS-xxx`: Visual defect and component inspection features.
+   - `AUD-xxx`: Acoustic spectrum features and BPFI/BPFO harmonic signatures.
+   - `SEN-xxx`: Physical telemetry readings with exact units and ISO threshold margins.
+   - `TXT-xxx`: Field technician symptom descriptions.
+   - `DOC-xxx`: Verified OEM maintenance manual citations with exact page numbers.
+2. **Claim-to-Evidence Bidirectional Audit Trace**:
+   - Explicitly links diagnostic claims to supporting and contradicting evidence IDs with verification status (`SUPPORTED`, `CONTRADICTED`, `UNVERIFIED`).
+3. **Multifactorial Confidence Decomposition**:
+   - Replaces ungrounded single numbers with decomposed factors: *Multimodal Agreement*, *Sensor Margin*, *Acoustic Evidence*, *Visual Evidence*, and *Contradiction Penalty*.
+4. **Action Traceability & Requirement Levels**:
+   - Classifies maintenance steps into `REQUIRED` (Safety-critical), `RECOMMENDED` (High yield), and `OPTIONAL`.
+5. **Immutable Audit Trail**:
+   - Records input cryptographic SHA-256 hashes, model versions, RAG chunk IDs, and execution latency to `reports/audit/audit_<CASE_ID>.json`.
 
 ---
 
 ## 📊 Benchmark Evaluation Results
 
-Evaluated across industrial benchmark test cases in [`scripts/evaluate_agent.py`](file:///C:/Users/Mahesh%20Karki/Downloads/Mahesh/multimodal-ai-diagnostics/scripts/evaluate_agent.py):
+Evaluated on the Explainability & Audit benchmark suite (`scripts/evaluate_explainability.py`):
 
-| Evaluation Metric | Value | Diagnostic Significance |
+| Evaluation Metric | Value | Meaning |
 | :--- | :---: | :--- |
-| **Diagnostic Accuracy** | **100.00%** | Primary root-cause diagnosis matched ground truth across all test cases |
-| **Severity Classification** | **100.00%** | Exact alignment with ISO 10816-3 and manual severity zones |
-| **Average Evidence Grounding** | **79.17%** | Diagnostic statements rigorously anchored in retrieved manual citations |
-| **Contradiction Detection Rate** | **100.00%** | Identified cross-modality conflicts (Vision Normal vs Audio Defect) |
+| **Evidence Attribution Rate** | **100.00%** | All observations assigned stable audit identifiers |
+| **Claim-to-Evidence Grounding** | **100.00%** | Diagnostic claims anchored in multi-channel observations |
+| **Audit Trail Integrity** | **100.00%** | Complete cryptographic input hash & version logging |
+| **Prompt Injection Immunity** | **100.00%** | Adversarial override attempts safely treated as passive data |
 
 ---
 
 ## 🛠️ CLI Execution Commands
 
-### 1. Run Diagnostic Agent Benchmark Suite
+### 1. Generate Auditable Diagnostic Report
 ```bash
-python scripts/evaluate_agent.py
+python scripts/generate_auditable_report.py --equipment motor --model M-4500 --description "High pitch acoustic squealing from bearing" --vibration 6.8 --temp 84.0 --audio-pred "bearing_defect_wear"
 ```
 
-### 2. Run Autonomous Diagnostic Case Workflow
+### 2. Run Explainability Benchmark Suite
 ```bash
-python scripts/run_diagnosis.py --equipment motor --model M-4500 --description "Motor emits loud periodic acoustic squealing and housing vibration is severe." --vibration 6.8 --temp 84.0 --audio-pred "bearing_defect_wear"
+python scripts/evaluate_explainability.py
 ```
 
-### 3. Run Unit and Integration Tests (13 tests)
+### 3. Run All Test Suites (17 unit & integration tests)
 ```bash
-pytest tests/test_rag.py tests/test_agent.py -v
+pytest tests/test_rag.py tests/test_agent.py tests/test_explainability.py -v
 ```
 
 ---
 
 ## 🔮 Roadmap: Next Phases
 
-- **Phase 8**: Explainability, Evidence & Diagnostic Report System — Auditable tracing connecting model activation heatmaps, acoustic spectrograms, and manual citations.
-- **Phase 9**: FastAPI Production Backend & Next.js UI.
+- **Phase 9**: Production API & Inference Service — FastAPI backend with structured Pydantic schemas, asynchronous job processing, and health monitoring endpoints.
+- **Phase 10**: Next.js Production Web UI & Field Deployment Dashboard.

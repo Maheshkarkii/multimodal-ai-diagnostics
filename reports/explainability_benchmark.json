@@ -1,0 +1,6 @@
+{
+  "total_cases": 3,
+  "evidence_attribution_rate": 1.0,
+  "claim_grounding_rate": 1.0,
+  "audit_trail_integrity": 1.0
+}

@@ -1,0 +1,26 @@
+{
+  "case_id": "EXPL_CASE_02_CAVITATION",
+  "timestamp": "2026-09-04 20:54:23",
+  "system_version": "explainability_and_auditable_reports",
+  "report_version": "1.0.0",
+  "model_versions": {
+    "vision": "vision_mobilenetv2_v1",
+    "audio": "audio_cnn_v1",
+    "sensor": "sensor_mlp_v1"
+  },
+  "knowledge_base_version": "rag_manuals_v1_2026_09",
+  "input_hashes": {
+    "problem": "0c184db9b7da"
+  },
+  "available_modalities": [
+    "audio"
+  ],
+  "retrieval_queries": [
+    "Continuous popping and gravel noise inside pump casing"
+  ],
+  "retrieved_chunk_ids": [],
+  "final_diagnosis": "hydraulic_cavitation",
+  "diagnostic_confidence": 0.6799999999999999,
+  "status": "REQUIRES_HUMAN_INSPECTION",
+  "execution_duration_ms": 403.17440032958984
+}

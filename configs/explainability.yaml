@@ -1,0 +1,40 @@
+﻿system_name: "explainability_and_auditable_reports"
+report_version: "1.0.0"
+vision_model_version: "vision_mobilenetv2_v1"
+audio_model_version: "audio_cnn_v1"
+sensor_model_version: "sensor_mlp_v1"
+knowledge_base_version: "rag_manuals_v1_2026_09"
+reports_output_dir: "reports/diagnostics"
+max_evidence_items: 25
+
+vision:
+  method: "gradcam"
+  target_layer: "features"
+  colormap: "inferno"
+  alpha_overlay: 0.5
+  save_visualizations: true
+  output_dir: "reports/explainability/vision"
+
+audio:
+  generate_mel_spectrogram: true
+  highlight_frequency_bands: true
+  save_visualizations: true
+  output_dir: "reports/explainability/audio"
+
+sensor:
+  generate_radar_plot: true
+  generate_envelope_plot: true
+  save_visualizations: true
+  output_dir: "reports/explainability/sensor"
+
+citation_validation:
+  strict_verification: true
+  require_page_match: true
+  require_section_match: false
+  lexical_overlap_threshold: 0.20
+
+audit:
+  enable_audit_trail: true
+  audit_storage_dir: "reports/audit"
+  record_input_hashes: true
+  record_model_checkpoints: true

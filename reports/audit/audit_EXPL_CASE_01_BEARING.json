@@ -1,0 +1,26 @@
+{
+  "case_id": "EXPL_CASE_01_BEARING",
+  "timestamp": "2026-09-04 20:54:23",
+  "system_version": "explainability_and_auditable_reports",
+  "report_version": "1.0.0",
+  "model_versions": {
+    "vision": "vision_mobilenetv2_v1",
+    "audio": "audio_cnn_v1",
+    "sensor": "sensor_mlp_v1"
+  },
+  "knowledge_base_version": "rag_manuals_v1_2026_09",
+  "input_hashes": {
+    "problem": "577cf8bbeda7"
+  },
+  "available_modalities": [
+    "audio"
+  ],
+  "retrieval_queries": [
+    "Periodic bearing squeal and high RMS vibration"
+  ],
+  "retrieved_chunk_ids": [],
+  "final_diagnosis": "bearing_defect_wear",
+  "diagnostic_confidence": 0.86,
+  "status": "DIAGNOSIS_SUPPORTED",
+  "execution_duration_ms": 807.9149723052979
+}
