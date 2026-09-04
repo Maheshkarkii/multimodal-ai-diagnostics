@@ -58,3 +58,8 @@ models/*.bin
 # OS files
 .DS_Store
 Thumbs.db
+
+frontend/node_modules/
+frontend/.next/
+frontend/package-lock.json
+

@@ -1,5 +1,5 @@
-# ==============================================================================
-# AI Field Engineer - Local Development & Production Compose Stack
+﻿# ==============================================================================
+# AI Field Engineer - Full-Stack Local Development & Production Compose Stack
 # ==============================================================================
 
 version: '3.8'
@@ -26,11 +26,8 @@ services:
       - LLM_PROVIDER=mock
       - LOG_LEVEL=INFO
     volumes:
-      # Persistent vector database and knowledge repository
       - rag_data:/app/data/rag/vector_store
-      # Persistent explainability reports and audit trails
       - audit_reports:/app/reports
-      # Optional external checkpoint directory
       - model_checkpoints:/app/models
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
@@ -38,6 +35,20 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: ai-field-engineer-frontend:latest
+    container_name: ai_field_engineer_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - api
 
 volumes:
   rag_data:

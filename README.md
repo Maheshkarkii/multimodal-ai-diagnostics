@@ -251,7 +251,93 @@ pytest tests/test_rag.py tests/test_agent.py tests/test_explainability.py -v
 
 ---
 
-## 🔮 Roadmap: Next Phases
+## 💻 Phase 12 — Field Engineer Web Application & Full System Integration
 
-- **Phase 9**: Production API & Inference Service — FastAPI backend with structured Pydantic schemas, asynchronous job processing, and health monitoring endpoints.
-- **Phase 10**: Next.js Production Web UI & Field Deployment Dashboard.
+The complete system includes a modern, responsive Next.js web application designed specifically for field technicians and reliability engineers:
+
+### Key UI Features
+- **Intuitive Case Creation**: Input equipment metadata, physical telemetry thresholds, and technician notes.
+- **Multimodal File Pickers**: Drag-and-drop support for high-resolution inspection photos and acoustic audio clips.
+- **Auditable Diagnostic Dashboards**: View primary diagnoses, decomposed confidence metrics, and evidence trails.
+- **Human Review & Feedback**: Integrated loop for recording domain-expert feedback to curate future benchmark datasets.
+
+### Running the Full-Stack Application Locally
+
+#### 1. Start with Docker Compose
+```bash
+docker compose up --build
+```
+- **Web UI**: http://localhost:3000
+- **FastAPI Documentation**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
+
+#### 2. Local Manual Startup
+```bash
+# Terminal 1: FastAPI Backend
+python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+
+# Terminal 2: Next.js Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 🏆 Complete 12-Phase System Architecture
+
+```
+                    ┌─────────────────────────────────────────┐
+                    │       Field Engineer / Technician       │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │      Next.js 14 Frontend Application    │
+                    │   (Responsive UI, Evidence & Feedback)  │
+                    └────────────────────┬────────────────────┘
+                                         │  (HTTP / Multipart)
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │       FastAPI Production Inference      │
+                    │  (Validation, Stream Cleanup, Security) │
+                    └────────────────────┬────────────────────┘
+                                         │
+                 ┌───────────────────────┼───────────────────────┐
+                 ▼                       ▼                       ▼
+      ┌─────────────────────┐ ┌─────────────────────┐ ┌─────────────────────┐
+      │   Vision Subsystem  │ │   Audio Subsystem   │ │   Sensor Subsystem  │
+      │  (ResNet Backbone)  │ │  (1D-CNN / Mel-STFT)│ │ (MLP & Anomaly Det) │
+      └──────────┬──────────┘ └──────────┬──────────┘ └──────────┬──────────┘
+                 │                       │                       │
+                 └───────────────────────┼───────────────────────┘
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │        Multimodal Cross-Attention       │
+                    │         Feature Fusion Pipeline         │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │         Technical Knowledge RAG         │
+                    │  (Dense + BM25 Hybrid Retrieval Index)  │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │        Diagnostic Reasoning Agent       │
+                    │   (Autonomous Loop & Safety Bounds)     │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │      Explainability & Evidence Layer    │
+                    │   (Grad-CAM, Saliency & Audit Trails)   │
+                    └────────────────────┬────────────────────┘
+                                         │
+                                         ▼
+                    ┌─────────────────────────────────────────┐
+                    │     Telemetry, Monitoring & Feedback    │
+                    │      (Drift Analysis & CI Gates)        │
+                    └─────────────────────────────────────────┘
+```
