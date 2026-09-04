@@ -1,4 +1,4 @@
-﻿"""
+"""
 Secure Temporary File and Payload Validation Service.
 Handles multipart uploaded files, validates mime-types and size limits,
 and guarantees deterministic temporary cleanup.
@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import uuid
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 from fastapi import UploadFile, HTTPException, status
 
 logger = logging.getLogger(__name__)
@@ -75,10 +75,12 @@ class FileValidationService:
         save_path.write_bytes(content)
         return save_path
 
-    def cleanup_file(self, file_path: Optional[Path]) -> None:
+    def cleanup_file(self, file_path: Optional[Union[Path, str]]) -> None:
         """Securely remove temporary file."""
-        if file_path and file_path.exists():
-            try:
-                file_path.unlink()
-            except Exception as e:
-                logger.warning(f"Could not delete temporary file '{file_path}': {e}")
+        if file_path:
+            p = Path(file_path)
+            if p.exists():
+                try:
+                    p.unlink()
+                except Exception as e:
+                    logger.warning(f"Could not delete temporary file '{p}': {e}")

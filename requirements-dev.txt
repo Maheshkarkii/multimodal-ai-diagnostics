@@ -1,5 +1,17 @@
-﻿pytest>=7.4.0
+# ==============================================================================
+# AI Field Engineer - Development, CI/CD, Linting & Test Dependencies
+# ==============================================================================
+
+-r requirements.txt
+
+# Testing & Async HTTP Client
+pytest>=7.4.0
 pytest-cov>=4.1.0
-black>=23.9.0
-flake8>=6.1.0
-mypy>=1.6.0
+pytest-asyncio>=0.23.0
+httpx>=0.26.0
+
+# Code Quality, Formatting & Static Type Checking
+ruff>=0.3.0
+mypy>=1.8.0
+types-PyYAML>=6.0.12
+types-requests>=2.31.0

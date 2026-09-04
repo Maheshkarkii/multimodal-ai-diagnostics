@@ -1,4 +1,4 @@
-﻿"""
+"""
 RAG Technical Knowledge Route Handlers.
 Exposes direct semantic queries to the persistent vector database.
 """
@@ -31,7 +31,7 @@ class RAGQueryResponse(BaseModel):
 
 @router.get("/query", response_model=RAGQueryResponse, status_code=status.HTTP_200_OK)
 async def query_technical_manuals(
-    q: str = Query(..., description="Technical question or fault symptom", example="vibration severity limits ISO"),
+    q: str = Query(..., description="Technical question or fault symptom", json_schema_extra={"examples": ["vibration severity limits ISO"]}),
     equipment_type: Optional[str] = Query(None, description="Optional equipment filter (motor, pump, gearbox)"),
     top_k: int = Query(5, ge=1, le=20, description="Max candidate chunks to return"),
     orchestrator: DiagnosticOrchestrator = Depends(get_diagnostic_orchestrator),

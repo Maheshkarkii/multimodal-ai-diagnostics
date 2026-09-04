@@ -11,6 +11,8 @@ class HealthResponse(BaseModel):
     status: str = Field(json_schema_extra={"example": "healthy"})
     service: str = Field(json_schema_extra={"example": "ai-field-engineer-api"})
     version: str = Field(json_schema_extra={"example": "1.0.0"})
+    environment: str = Field("production", json_schema_extra={"example": "production"})
+    git_sha: str = Field("unknown", json_schema_extra={"example": "5963611"})
     timestamp: str
 
 

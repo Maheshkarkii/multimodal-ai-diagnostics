@@ -1,0 +1,50 @@
+# ==============================================================================
+# Docker Build Context Ignore List (.dockerignore)
+# Minimizes context transfer and eliminates local caches/secrets
+# ==============================================================================
+
+.git
+.github
+.gitignore
+.dockerignore
+.venv
+venv
+ENV
+env
+
+# Cache directories
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+coverage.xml
+
+# Local development logs and temporary diagnostics
+logs/
+*.log
+data/temp_uploads/*
+!data/temp_uploads/.gitkeep
+experiments/outputs/
+
+# Local developer secrets
+.env
+.env.*
+*.pem
+*.key
+
+# IDE metadata
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation & Scratch Notebooks
+docs/
+notebooks/
+*.md
+!README.md

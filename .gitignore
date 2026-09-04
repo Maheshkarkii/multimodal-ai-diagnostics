@@ -4,13 +4,18 @@ __pycache__/
 *$py.class
 *.so
 
-# Environments
+# Environments & Secrets
 .venv/
 venv/
 ENV/
 env/
 env.bak/
 venv.bak/
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
 
 # Distribution / packaging
 build/
@@ -19,17 +24,27 @@ dist/
 .eggs/
 wheels/
 
-# Unit test / coverage reports
+# Unit test / coverage reports / static analysis
 .pytest_cache/
 .coverage
 .coverage.*
 htmlcov/
 coverage.xml
+.mypy_cache/
+.ruff_cache/
 
-# Logs & Experiments
+# Logs, Diagnostics & Temp Uploads
 experiments/outputs/
 logs/
 *.log
+data/temp_uploads/*
+!data/temp_uploads/.gitkeep
+
+# Heavy Model Checkpoints (Persist externally or via volume mounts)
+models/*.pth
+models/*.pt
+models/*.onnx
+models/*.bin
 
 # IDE & Editor files
 .vscode/

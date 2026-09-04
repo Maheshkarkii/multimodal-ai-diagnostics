@@ -1,8 +1,9 @@
-﻿"""
+"""
 Health and Readiness Route Handlers.
 """
 
 from datetime import datetime
+import os
 from fastapi import APIRouter, Depends, status, Response
 from src.api.schemas.diagnosis import HealthResponse, ReadinessResponse
 from src.api.dependencies.services import get_diagnostic_orchestrator
@@ -10,14 +11,15 @@ from src.api.services.orchestrator import DiagnosticOrchestrator
 
 router = APIRouter(tags=["System Health & Monitoring"])
 
-
 @router.get("/health", response_model=HealthResponse, status_code=status.HTTP_200_OK)
 async def health_check():
-    """Liveness probe returning application operational status."""
+    """Liveness probe returning application operational status and version metadata."""
     return HealthResponse(
         status="healthy",
         service="ai-field-engineer-api",
         version="1.0.0",
+        environment=os.getenv("ENVIRONMENT", "production"),
+        git_sha=os.getenv("GIT_SHA", "unknown"),
         timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
 

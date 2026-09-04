@@ -1,4 +1,4 @@
-﻿# AI Field Engineer - Multimodal Autonomous Troubleshooting & Diagnosis System
+# AI Field Engineer - Multimodal Autonomous Troubleshooting & Diagnosis System
 
 An industrial-grade, multimodal AI system for automated equipment inspection, fault detection, diagnosis, and troubleshooting across images, audio, sensor telemetry, and technical documentation.
 
@@ -58,6 +58,156 @@ Phase 8 elevates the system to full **industrial auditability and explainability
    - `SEN-xxx`: Physical telemetry readings with exact units and ISO threshold margins.
    - `TXT-xxx`: Field technician symptom descriptions.
    - `DOC-xxx`: Verified OEM maintenance manual citations with exact page numbers.
+
+---
+
+## 🚀 Phase 9 & 10 — Production API, Docker & CI/CD Deployment
+
+The AI Field Engineer system is fully containerized, reproducible, and deployment-ready via FastAPI, multi-stage Docker builds, Docker Compose, and automated GitHub Actions CI/CD pipelines.
+
+### 🏛️ Complete Deployment Architecture
+
+```
+                       Internet / Client (Field Engineer / Mobile / Web)
+                                              │
+                                              ▼
+                                 [FastAPI Production Service]
+                                              │
+                ┌─────────────────────────────┼─────────────────────────────┐
+                │                             │                             │
+                ▼                             ▼                             ▼
+       [Vision Service]                [Audio Service]              [Sensor Service]
+       (ResNet Backbone)              (1D-CNN / STFT)               (MLP / Telemetry)
+                │                             │                             │
+                └─────────────────────────────┼─────────────────────────────┘
+                                              ▼
+                                 [Multimodal Fusion Layer]
+                               (Cross-Attention & Gating)
+                                              │
+                                              ▼
+                                [Technical Knowledge RAG]
+                                (Dense + BM25 Hybrid)
+                                              │
+                                              ▼
+                                 [Diagnostic Reasoning Agent]
+                                (Multi-Stage Autonomous Loop)
+                                              │
+                                              ▼
+                                [Explainability & Audit Layer]
+                               (Grad-CAM, FFT & Audit JSON)
+                                              │
+                                              ▼
+                                 [Structured JSON & Reports]
+```
+
+---
+
+## 🛠️ Production Setup & Deployment Guide
+
+### Prerequisites
+- **Python**: `3.10` to `3.13` (Production Docker image uses `Python 3.11-slim`)
+- **Docker**: `20.10+` with Buildx support
+- **Docker Compose**: `2.0+` (optional for local multi-volume stack)
+
+### 1. Environment Configuration
+Create a `.env` file based on `.env.example`:
+```bash
+cp .env.example .env
+```
+
+Key environment variables:
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `ENVIRONMENT` | Runtime mode (`development`, `staging`, `production`) | `production` |
+| `API_HOST` | Host address to bind inside container | `0.0.0.0` |
+| `API_PORT` | Listening port for FastAPI | `8000` |
+| `API_WORKERS` | Uvicorn worker processes | `1` |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | `http://localhost:3000,http://127.0.0.1:3000` |
+| `TEMP_UPLOAD_DIR` | Sandboxed temporary directory for uploads | `/tmp/ai-field-engineer/uploads` |
+| `VECTOR_STORE_DIR`| Persistent vector database directory | `/app/data/rag/vector_store` |
+| `MODEL_DIR` | Trained model weights directory | `/app/models` |
+| `LLM_PROVIDER` | Reasoning engine provider (`mock`, `gemini`, `openai`) | `mock` |
+
+### 2. Local Docker Workflow
+
+#### Build the Docker Image
+```bash
+docker build -t ai-field-engineer-api:latest .
+```
+
+#### Run the Production Container
+```bash
+docker run -d \
+  --name ai_field_engineer_api \
+  -p 8000:8000 \
+  -e ENVIRONMENT=production \
+  -e ALLOWED_ORIGINS="http://localhost:3000,http://localhost:8000" \
+  -v $(pwd)/data/rag/vector_store:/app/data/rag/vector_store \
+  -v $(pwd)/reports:/app/reports \
+  ai-field-engineer-api:latest
+```
+
+#### Using Docker Compose
+```bash
+docker compose up -d
+```
+
+### 3. Verify Health & Diagnose
+Check liveness & readiness:
+```bash
+curl -f http://127.0.0.1:8000/health
+curl -f http://127.0.0.1:8000/ready
+```
+
+Submit a diagnostic case:
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/diagnose \
+  -F 'technician_description=High pitch squeal and casing temperature elevated to 88C' \
+  -F 'sensor_data={"temperature": 88.0, "vibration": 7.4, "rpm": 1490.0}' \
+  -F 'equipment_metadata={"equipment_type": "motor", "manufacturer": "Siemens"}'
+```
+
+---
+
+## 🧪 CI/CD & Automated Quality Gates
+
+Every Pull Request and Push to `main` executes the `.github/workflows/ci.yml` pipeline:
+
+```
+Push / PR
+   │
+   ▼
+[1. Code Quality] ──> Ruff Linter & Formatter Check + mypy Static Type Checking
+   │
+   ▼
+[2. Automated Tests] ──> Pytest Full Suite (64 Unit/Integration Tests across Phases 1-10)
+   │
+   ▼
+[3. Docker Build & Smoke Test] ──> Multi-stage Docker Build + Container Startup + /ready Probe + Diagnostic Test
+```
+
+### Run Local Checks
+```bash
+# Linting & Formatting
+ruff check src/ tests/
+ruff format --check src/ tests/
+
+# Type Checking
+mypy src/api/ src/rag/config.py src/explainability/core/schema.py
+
+# Test Suite
+python -m pytest tests/ -v
+```
+
+---
+
+## 🔒 Security Baseline
+
+- **Non-Root Runtime**: Application executes under dedicated user `appuser` (`UID: 10001`).
+- **Zero Secrets in Images**: Configuration strictly supplied via environment variables; `.env` is gitignored.
+- **Sandboxed Uploads**: Multipart uploads stream through `FileValidationService` with strict MIME and size limits.
+- **Production CORS**: Configurable allowed origins; prevents wildcard origins in production environments.
+
 2. **Claim-to-Evidence Bidirectional Audit Trace**:
    - Explicitly links diagnostic claims to supporting and contradicting evidence IDs with verification status (`SUPPORTED`, `CONTRADICTED`, `UNVERIFIED`).
 3. **Multifactorial Confidence Decomposition**:
