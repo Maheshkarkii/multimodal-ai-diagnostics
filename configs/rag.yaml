@@ -1,0 +1,45 @@
+﻿system_name: "technical_knowledge_rag"
+documents_dir: "data/rag/documents"
+manifest_path: "data/rag/vector_store/documents_manifest.json"
+
+ingestion:
+  supported_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".md"
+    - ".docx"
+  detect_scanned_pdf: true
+  min_page_chars_threshold: 40
+  clean_whitespace: true
+  preserve_page_boundaries: true
+
+chunking:
+  strategy: "hierarchical"
+  chunk_size: 500
+  chunk_overlap: 100
+  split_on_headings: true
+  split_on_paragraphs: true
+  split_on_tables: true
+
+embedding:
+  model_type: "deterministic"
+  model_name_or_path: "sentence-transformers/all-MiniLM-L6-v2"
+  embedding_dim: 384
+  normalize_embeddings: true
+  batch_size: 32
+  device: "cpu"
+
+vector_store:
+  store_type: "numpy_flat"
+  persist_directory: "data/rag/vector_store"
+  collection_name: "equipment_manuals"
+  distance_metric: "cosine"
+
+retrieval:
+  top_k: 5
+  similarity_threshold: 0.15
+  enable_hybrid: true
+  dense_weight: 0.65
+  sparse_weight: 0.35
+  max_context_chars: 3000
+  max_context_chunks: 5

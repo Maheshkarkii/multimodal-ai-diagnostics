@@ -1,0 +1,134 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 3 0 R >>
+endobj
+2 0 obj
+<< /Type /Outlines /Count 0 >>
+endobj
+3 0 obj
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R] /Count 3 >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 891 >>
+stream
+BT
+/F1 14 Tf
+50 740 Td
+(SECTION 1: GENERAL SPECIFICATIONS & OPERATING LIMITS) Tj
+/F1 10 Tf
+0 -25 Td
+(1.1 Introduction) Tj
+0 -14 Td
+(This technical maintenance manual provides operating limits, inspection procedures, and) Tj
+0 -14 Td
+(corrective repair workflows for Model M-4500 Three-Phase Industrial Induction Motors.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(1.2 Vibration Thresholds Table) Tj
+0 -14 Td
+(ISO 10816-3 Industrial Vibration Severity Standard:) Tj
+0 -14 Td
+(Zone A \(Normal\): RMS vibration velocity below 2.3 mm/s \(0.09 in/s\). Smooth operation.) Tj
+0 -14 Td
+(Zone B \(Acceptable\): RMS velocity between 2.3 mm/s and 4.5 mm/s. Continuous operation allowed.) Tj
+0 -14 Td
+(Zone C \(Warning\): RMS velocity between 4.5 mm/s and 7.1 mm/s. Immediate maintenance required.) Tj
+0 -14 Td
+(Zone D \(Critical Danger\): RMS velocity exceeding 7.1 mm/s. Immediate emergency shutdown.) Tj
+0 -14 Td
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 1067 >>
+stream
+BT
+/F1 14 Tf
+50 740 Td
+(SECTION 2: BEARING INSPECTION & LUBRICATION PROCEDURES) Tj
+/F1 10 Tf
+0 -25 Td
+(2.1 Bearing Degradation Symptoms) Tj
+0 -14 Td
+(Common symptoms of rolling element bearing wear include high-frequency acoustic squealing,) Tj
+0 -14 Td
+(inner race spalling harmonics at BPFI \(Ball Pass Frequency Inner race\), outer race defects at BPFO,) Tj
+0 -14 Td
+(and localized bearing housing temperature exceeding 75 degrees Celsius.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(2.2 Recommended Inspection Steps for Bearing Problems) Tj
+0 -14 Td
+(Step 1: Perform acoustic ultrasound listening check for periodic impacts or clicking.) Tj
+0 -14 Td
+(Step 2: Measure overall RMS vibration velocity and acceleration enveloping peak-to-peak.) Tj
+0 -14 Td
+(Step 3: Measure thermal infrared gradient across drive-end \(DE\) and non-drive-end \(NDE\) bearings.) Tj
+0 -14 Td
+(Step 4: Inspect grease sample for metallic particle discoloration or oxidation degradation.) Tj
+0 -14 Td
+(Step 5: Check shaft axial and radial play with dial indicator \(< 0.05 mm allowable\).) Tj
+0 -14 Td
+ET
+endstream
+endobj
+9 0 obj
+<< /Length 746 >>
+stream
+BT
+/F1 14 Tf
+50 740 Td
+(SECTION 3: ROTOR UNBALANCE & SHAFT MISALIGNMENT) Tj
+/F1 10 Tf
+0 -25 Td
+(3.1 Rotor Dynamic Unbalance) Tj
+0 -14 Td
+(Rotor unbalance generates a dominant 1X running speed radial vibration frequency component.) Tj
+0 -14 Td
+(When radial vibration at 1X rotational speed exceeds 5.0 mm/s RMS, perform dynamic two-plane balancing.) Tj
+0 -14 Td
+() Tj
+0 -14 Td
+(3.2 Angular and Parallel Misalignment) Tj
+0 -14 Td
+(Shaft misalignment typically exhibits strong 2X and 3X shaft speed harmonic vibration peaks) Tj
+0 -14 Td
+(accompanied by high axial vibration amplitudes. Check flexible coupling elastomeric inserts) Tj
+0 -14 Td
+(and verify laser alignment tolerances within 0.05 mm offset and 0.04 mm/100mm angularity.) Tj
+0 -14 Td
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << /Font << /F1 4 0 R >> >> >>
+endobj
+8 0 obj
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 612 792] /Contents 7 0 R /Resources << /Font << /F1 4 0 R >> >> >>
+endobj
+10 0 obj
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 612 792] /Contents 9 0 R /Resources << /Font << /F1 4 0 R >> >> >>
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000104 00000 n 
+0000000174 00000 n 
+0000000244 00000 n 
+0000001186 00000 n 
+0000002305 00000 n 
+0000003102 00000 n 
+0000003228 00000 n 
+0000003354 00000 n 
+trailer
+<< /Size 11 /Root 1 0 R >>
+startxref
+3481
+%%EOF

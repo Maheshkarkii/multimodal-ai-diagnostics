@@ -1,0 +1,42 @@
+{
+  "C:\\Users\\Mahesh Karki\\Downloads\\Mahesh\\multimodal-ai-diagnostics\\data\\rag\\documents\\centrifugal_pump_cp800_troubleshooting.md": {
+    "document_id": "centrifugal_pump_cp800_troubleshooting_eb02845d1f",
+    "document_name": "centrifugal_pump_cp800_troubleshooting.md",
+    "file_hash": "eb02845d1fe42d66d278c49734eb5dd113f80abe7af18dc2a3d6a2c50d30e8a8",
+    "file_size_bytes": 1619,
+    "num_pages": 3,
+    "equipment_type": null,
+    "manufacturer": null,
+    "model": null
+  },
+  "C:\\Users\\Mahesh Karki\\Downloads\\Mahesh\\multimodal-ai-diagnostics\\data\\rag\\documents\\industrial_gearbox_gb200_repair.txt": {
+    "document_id": "industrial_gearbox_gb200_repair_cebffe29cc",
+    "document_name": "industrial_gearbox_gb200_repair.txt",
+    "file_hash": "cebffe29ccd6bfa3828759093701850802cb70a1393ba646049a6c9f5c4e8b19",
+    "file_size_bytes": 1019,
+    "num_pages": 3,
+    "equipment_type": null,
+    "manufacturer": null,
+    "model": null
+  },
+  "C:\\Users\\Mahesh Karki\\Downloads\\Mahesh\\multimodal-ai-diagnostics\\data\\rag\\documents\\motor_m4500_maintenance_manual.pdf": {
+    "document_id": "motor_m4500_maintenance_manual_2ae32ee649",
+    "document_name": "motor_m4500_maintenance_manual.pdf",
+    "file_hash": "2ae32ee6490871aa628a1caf178180a613f2f593f01d3cc6e3aac5c394c6a5f8",
+    "file_size_bytes": 3767,
+    "num_pages": 3,
+    "equipment_type": null,
+    "manufacturer": null,
+    "model": null
+  },
+  "C:\\Users\\Mahesh Karki\\Downloads\\Mahesh\\multimodal-ai-diagnostics\\data\\rag\\documents\\sparse_unreadable_sample.pdf": {
+    "document_id": "sparse_unreadable_sample_8493218476",
+    "document_name": "sparse_unreadable_sample.pdf",
+    "file_hash": "8493218476e3f18ff86b3a2d95e638eb1279c4a0e20593fcacba5fb4ea69c3f0",
+    "file_size_bytes": 1009,
+    "num_pages": 2,
+    "equipment_type": null,
+    "manufacturer": null,
+    "model": null
+  }
+}

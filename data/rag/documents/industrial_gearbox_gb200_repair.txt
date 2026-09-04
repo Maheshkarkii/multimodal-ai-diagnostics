@@ -1,0 +1,22 @@
+INDUSTRIAL GEARBOX GB-200 TECHNICAL REPAIR GUIDE
+
+--- PAGE 1 ---
+SECTION 1: GEAR MESHING FAULTS AND ACOUSTIC NOISE
+
+1.1 Gear Tooth Wear and Pitting
+Gear tooth flank pitting generates gear mesh frequency (GMF = Number of Teeth x Shaft RPM) sideband modulation.
+Acoustic signatures characterized by harmonic modulation spaced at the rotating shaft speed indicate chipped, cracked, or worn gear teeth.
+Recommended Oil Analysis:
+- Iron (Fe) wear debris > 100 ppm requires lubricant flush and filter replacement.
+- Copper/Bronze (Cu) > 50 ppm indicates thrust washer or bronze cage degradation.
+
+--- PAGE 2 ---
+SECTION 2: BACKLASH AND BEARING PRELOAD SPECIFICATIONS
+
+2.1 Backlash Tolerances
+Normal backlash for GB-200 helical gear sets: 0.15 mm to 0.25 mm.
+Excessive backlash (> 0.45 mm) produces rattling impact sounds during speed or torque transitions.
+
+2.2 Thermal Operating Limits
+Maximum continuous gearbox sump oil temperature: 85 degrees Celsius.
+Thermal warning threshold: 80 degrees Celsius.

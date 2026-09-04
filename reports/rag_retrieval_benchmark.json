@@ -1,0 +1,90 @@
+{
+  "total_queries": 6,
+  "hit_rate_at_1": 1.0,
+  "hit_rate_at_3": 1.0,
+  "hit_rate_at_5": 1.0,
+  "mrr": 1.0,
+  "precision_at_k": 0.39999999999999997,
+  "recall_at_k": 1.0,
+  "average_top1_score": 0.6430501737265192,
+  "per_query_results": [
+    {
+      "query_id": "Q01_BEARING_INSPECTION",
+      "query": "What are the recommended inspection steps for bearing problems?",
+      "target_doc": "motor_m4500_maintenance_manual.pdf",
+      "target_page": 2,
+      "target_section": "BEARING INSPECTION",
+      "matched_rank": 1,
+      "reciprocal_rank": 1.0,
+      "retrieved_count": 5,
+      "top_score": 0.6816666275262833,
+      "top_result_doc": "motor_m4500_maintenance_manual.pdf",
+      "top_result_page": 2
+    },
+    {
+      "query_id": "Q02_VIBRATION_SEVERITY",
+      "query": "What vibration level requires immediate inspection or shutdown according to ISO standard?",
+      "target_doc": "motor_m4500_maintenance_manual.pdf",
+      "target_page": 1,
+      "target_section": "VIBRATION THRESHOLDS",
+      "matched_rank": 1,
+      "reciprocal_rank": 1.0,
+      "retrieved_count": 5,
+      "top_score": 0.6279606375505942,
+      "top_result_doc": "motor_m4500_maintenance_manual.pdf",
+      "top_result_page": 1
+    },
+    {
+      "query_id": "Q03_CAVITATION_SYMPTOMS",
+      "query": "What are the symptoms and acoustic noise associated with hydraulic cavitation?",
+      "target_doc": "centrifugal_pump_cp800_troubleshooting.md",
+      "target_page": 1,
+      "target_section": "CAVITATION",
+      "matched_rank": 1,
+      "reciprocal_rank": 1.0,
+      "retrieved_count": 5,
+      "top_score": 0.6143798246979713,
+      "top_result_doc": "centrifugal_pump_cp800_troubleshooting.md",
+      "top_result_page": 2
+    },
+    {
+      "query_id": "Q04_MECHANICAL_SEAL_LEAKAGE",
+      "query": "What is the allowable leakage rate for centrifugal pump mechanical seals?",
+      "target_doc": "centrifugal_pump_cp800_troubleshooting.md",
+      "target_page": 2,
+      "target_section": "MECHANICAL SEAL",
+      "matched_rank": 1,
+      "reciprocal_rank": 1.0,
+      "retrieved_count": 5,
+      "top_score": 0.5923835724592209,
+      "top_result_doc": "centrifugal_pump_cp800_troubleshooting.md",
+      "top_result_page": 3
+    },
+    {
+      "query_id": "Q05_GEARBOX_PITTING_NOISE",
+      "query": "What causes gear mesh frequency sidebands and high oil iron content in gearboxes?",
+      "target_doc": "industrial_gearbox_gb200_repair.txt",
+      "target_page": 1,
+      "target_section": "GEAR MESHING",
+      "matched_rank": 1,
+      "reciprocal_rank": 1.0,
+      "retrieved_count": 5,
+      "top_score": 0.6269438952207564,
+      "top_result_doc": "industrial_gearbox_gb200_repair.txt",
+      "top_result_page": 2
+    },
+    {
+      "query_id": "Q06_ROTATING_UNBALANCE_HARMONIC",
+      "query": "What vibration frequency indicates rotor dynamic unbalance and when should balancing be performed?",
+      "target_doc": "motor_m4500_maintenance_manual.pdf",
+      "target_page": 3,
+      "target_section": "ROTOR UNBALANCE",
+      "matched_rank": 1,
+      "reciprocal_rank": 1.0,
+      "retrieved_count": 5,
+      "top_score": 0.7149664849042892,
+      "top_result_doc": "motor_m4500_maintenance_manual.pdf",
+      "top_result_page": 3
+    }
+  ]
+}

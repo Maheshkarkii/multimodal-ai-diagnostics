@@ -1,0 +1,55 @@
+{
+  "total_cases": 4,
+  "diagnostic_accuracy": 1.0,
+  "severity_accuracy": 1.0,
+  "average_groundedness": 0.7916666666666666,
+  "results": [
+    {
+      "case_id": "BENCH_CASE_01_BEARING",
+      "expected_diagnosis": "bearing_defect_wear",
+      "predicted_diagnosis": "bearing_defect_wear",
+      "confidence": 0.86,
+      "severity": "HIGH",
+      "groundedness_score": 0.75,
+      "unsupported_claims": [
+        "Action 'perform acoustic ultrasound listening check on dri...' lacks cited technical justification."
+      ],
+      "status": "PASSED"
+    },
+    {
+      "case_id": "BENCH_CASE_02_CAVITATION",
+      "expected_diagnosis": "hydraulic_cavitation",
+      "predicted_diagnosis": "hydraulic_cavitation",
+      "confidence": 0.6799999999999999,
+      "severity": "HIGH",
+      "groundedness_score": 0.6666666666666666,
+      "unsupported_claims": [
+        "Action 'verify suction line strainer is clean and isolatio...' lacks cited technical justification.",
+        "Cited reference 'centrifugal_pump_cp800_troubleshooting.md (Page 1, Section: CAVITATION)' was not retrieved in knowledge search."
+      ],
+      "status": "PASSED"
+    },
+    {
+      "case_id": "BENCH_CASE_03_UNBALANCE",
+      "expected_diagnosis": "rotor_unbalance",
+      "predicted_diagnosis": "rotor_unbalance",
+      "confidence": 0.82,
+      "severity": "MEDIUM",
+      "groundedness_score": 1.0,
+      "unsupported_claims": [],
+      "status": "PASSED"
+    },
+    {
+      "case_id": "BENCH_CASE_04_CONTRADICTION",
+      "expected_diagnosis": "bearing_defect_wear",
+      "predicted_diagnosis": "bearing_defect_wear",
+      "confidence": 0.6599999999999999,
+      "severity": "HIGH",
+      "groundedness_score": 0.75,
+      "unsupported_claims": [
+        "Action 'perform acoustic ultrasound listening check on dri...' lacks cited technical justification."
+      ],
+      "status": "PASSED"
+    }
+  ]
+}
