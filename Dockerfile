@@ -21,6 +21,7 @@ COPY requirements.txt .
 
 # Install dependencies into a separate wheels directory or virtual environment
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --user torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir --user -r requirements.txt
 
 # ------------------------------------------------------------------------------
