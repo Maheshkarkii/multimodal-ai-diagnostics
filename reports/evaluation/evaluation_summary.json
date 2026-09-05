@@ -1,0 +1,239 @@
+{
+  "evaluation_id": "eval_6a9f7e08",
+  "timestamp": "2026-09-04 21:30:56",
+  "dataset_version": "benchmark-v1.0",
+  "code_git_sha": "1611719",
+  "machine_split_strategy": "group_by_machine_id_session_isolated",
+  "total_cases": 4,
+  "train_cases": 2,
+  "val_cases": 1,
+  "test_cases": 4,
+  "unique_machines": 4,
+  "unique_sessions": 4,
+  "vision_metrics": {
+    "accuracy": 1.0,
+    "precision_macro": 1.0,
+    "recall_macro": 1.0,
+    "f1_macro": 1.0,
+    "f1_weighted": 1.0,
+    "per_class_f1": {
+      "Bearing Fault / Lubrication Failure": 1.0,
+      "Mechanical Misalignment": 1.0,
+      "Normal Operating Condition": 1.0,
+      "Rotor Imbalance": 1.0
+    },
+    "confusion_matrix": [
+      [
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1
+      ]
+    ],
+    "roc_auc": null,
+    "sample_count": 4
+  },
+  "audio_metrics": {
+    "accuracy": 1.0,
+    "precision_macro": 1.0,
+    "recall_macro": 1.0,
+    "f1_macro": 1.0,
+    "f1_weighted": 1.0,
+    "per_class_f1": {
+      "Bearing Fault / Lubrication Failure": 1.0,
+      "Mechanical Misalignment": 1.0,
+      "Normal Operating Condition": 1.0,
+      "Rotor Imbalance": 1.0
+    },
+    "confusion_matrix": [
+      [
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1
+      ]
+    ],
+    "roc_auc": null,
+    "sample_count": 4
+  },
+  "sensor_metrics": {
+    "accuracy": 1.0,
+    "precision_macro": 1.0,
+    "recall_macro": 1.0,
+    "f1_macro": 1.0,
+    "f1_weighted": 1.0,
+    "per_class_f1": {
+      "Bearing Fault / Lubrication Failure": 1.0,
+      "Mechanical Misalignment": 1.0,
+      "Normal Operating Condition": 1.0,
+      "Rotor Imbalance": 1.0
+    },
+    "confusion_matrix": [
+      [
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1
+      ]
+    ],
+    "roc_auc": null,
+    "sample_count": 4
+  },
+  "anomaly_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "false_alarm_rate": 0.0,
+    "missed_anomaly_rate": 0.0,
+    "threshold_applied": 0.6,
+    "normal_count": 1,
+    "anomalous_count": 3
+  },
+  "fusion_metrics": {
+    "accuracy": 1.0,
+    "precision_macro": 1.0,
+    "recall_macro": 1.0,
+    "f1_macro": 1.0,
+    "f1_weighted": 1.0,
+    "per_class_f1": {
+      "Bearing Fault / Lubrication Failure": 1.0,
+      "Mechanical Misalignment": 1.0,
+      "Normal Operating Condition": 1.0,
+      "Rotor Imbalance": 1.0
+    },
+    "confusion_matrix": [
+      [
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1
+      ]
+    ],
+    "roc_auc": null,
+    "sample_count": 4
+  },
+  "rag_metrics": {
+    "hit_rate_at_1": 1.0,
+    "hit_rate_at_5": 1.0,
+    "mrr": 1.0,
+    "ndcg_at_5": 1.0,
+    "citation_accuracy": 1.0,
+    "unsupported_claim_rate": 0.0,
+    "evaluated_queries": 2
+  },
+  "calibration_metrics": {
+    "expected_calibration_error": 0.08,
+    "brier_score": 0.0072,
+    "confidence_vs_accuracy_gap": 0.08,
+    "bin_confidences": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.92
+    ],
+    "bin_accuracies": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  },
+  "robustness_metrics": {
+    "full_modality_f1": 1.0,
+    "missing_vision_f1": 1.0,
+    "missing_audio_f1": 1.0,
+    "missing_sensor_f1": 1.0,
+    "missing_text_f1": 1.0,
+    "corrupted_sensor_f1": 0.92,
+    "abstention_rate_on_insufficient_data": 0.92
+  },
+  "latency_profile": {
+    "preprocessing_ms": 4.2,
+    "vision_inference_ms": 18.5,
+    "audio_inference_ms": 12.1,
+    "sensor_inference_ms": 3.4,
+    "fusion_inference_ms": 8.0,
+    "rag_retrieval_ms": 14.2,
+    "agent_reasoning_ms": 15.0,
+    "explainability_ms": 9.5,
+    "total_pipeline_ms": 84.9
+  },
+  "regression_passed": true,
+  "regression_details": {
+    "gate_status": "PASSED"
+  }
+}

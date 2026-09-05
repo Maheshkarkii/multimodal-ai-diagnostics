@@ -1,0 +1,26 @@
+{
+  "case_id": "CASE-20260904-B7AE37",
+  "timestamp": "2026-09-04 21:14:48",
+  "system_version": "explainability_and_auditable_reports",
+  "report_version": "1.0.0",
+  "model_versions": {
+    "vision": "vision_mobilenetv2_v1",
+    "audio": "audio_cnn_v1",
+    "sensor": "sensor_mlp_v1"
+  },
+  "knowledge_base_version": "rag_manuals_v1_2026_09",
+  "input_hashes": {
+    "technician_notes": "c255b6297950",
+    "sensor_data": "ffbe48d6743a",
+    "equipment": "fe50a83ad15b"
+  },
+  "available_modalities": [],
+  "retrieval_queries": [
+    "High pitch squeal and casing temperature elevated to 88C"
+  ],
+  "retrieved_chunk_ids": [],
+  "final_diagnosis": "bearing_defect_wear",
+  "diagnostic_confidence": 0.6599999999999999,
+  "status": "REQUIRES_HUMAN_INSPECTION",
+  "execution_duration_ms": 508.2263946533203
+}

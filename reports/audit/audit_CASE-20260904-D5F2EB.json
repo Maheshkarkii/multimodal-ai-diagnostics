@@ -1,6 +1,6 @@
 {
-  "case_id": "C1",
-  "timestamp": "2026-09-04 21:30:21",
+  "case_id": "CASE-20260904-D5F2EB",
+  "timestamp": "2026-09-04 20:57:50",
   "system_version": "explainability_and_auditable_reports",
   "report_version": "1.0.0",
   "model_versions": {
@@ -10,18 +10,17 @@
   },
   "knowledge_base_version": "rag_manuals_v1_2026_09",
   "input_hashes": {
-    "problem": "9ada8e83c118"
+    "technician_notes": "6f1885caa5d3",
+    "sensor_data": "dc937b598926",
+    "equipment": "db4cfddb0640"
   },
-  "available_modalities": [
-    "audio",
-    "sensor"
-  ],
+  "available_modalities": [],
   "retrieval_queries": [
-    "Noise"
+    "Motor emits loud periodic acoustic squealing and excessive vibration."
   ],
   "retrieved_chunk_ids": [],
   "final_diagnosis": "bearing_defect_wear",
-  "diagnostic_confidence": 0.88,
+  "diagnostic_confidence": 0.86,
   "status": "DIAGNOSIS_SUPPORTED",
-  "execution_duration_ms": 606.834888458252
+  "execution_duration_ms": 427.1371364593506
 }

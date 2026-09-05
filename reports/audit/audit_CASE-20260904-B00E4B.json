@@ -1,0 +1,29 @@
+{
+  "case_id": "CASE-20260904-B00E4B",
+  "timestamp": "2026-09-04 20:57:44",
+  "system_version": "explainability_and_auditable_reports",
+  "report_version": "1.0.0",
+  "model_versions": {
+    "vision": "vision_mobilenetv2_v1",
+    "audio": "audio_cnn_v1",
+    "sensor": "sensor_mlp_v1"
+  },
+  "knowledge_base_version": "rag_manuals_v1_2026_09",
+  "input_hashes": {
+    "technician_notes": "6340b98a40dc",
+    "sensor_data": "c260fac5aa68",
+    "equipment": "916df229cf7f"
+  },
+  "available_modalities": [
+    "vision",
+    "audio"
+  ],
+  "retrieval_queries": [
+    "Centrifugal pump cavitation noise and popping."
+  ],
+  "retrieved_chunk_ids": [],
+  "final_diagnosis": "hydraulic_cavitation",
+  "diagnostic_confidence": 0.6799999999999999,
+  "status": "REQUIRES_HUMAN_INSPECTION",
+  "execution_duration_ms": 386.1422538757324
+}
