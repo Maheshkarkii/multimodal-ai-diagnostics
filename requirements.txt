@@ -6,7 +6,8 @@
 # Core Deep Learning & Numerical Foundations
 torch>=2.1.0
 torchvision>=0.16.0
-numpy>=1.24.0,<2.0.0
+torchaudio>=2.1.0
+numpy>=1.24.0
 scipy>=1.10.0
 pandas>=2.0.0
 scikit-learn>=1.3.0
@@ -15,6 +16,7 @@ matplotlib>=3.7.0
 # Image & Signal Processing
 Pillow>=10.0.0
 opencv-python-headless>=4.8.0
+soundfile>=0.12.0
 
 # Technical Knowledge RAG Subsystem (Phase 6)
 pypdf>=3.17.0
@@ -26,7 +28,7 @@ pydantic>=2.5.0
 tqdm>=4.66.0
 
 # Production API & Inference Service (Phase 9 & Phase 10)
-fastAPI>=0.110.0
+fastapi>=0.110.0
 uvicorn[standard]>=0.28.0
 python-multipart>=0.0.9
 requests>=2.31.0

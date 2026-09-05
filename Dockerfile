@@ -21,8 +21,8 @@ COPY requirements.txt .
 
 # Install dependencies into a separate wheels directory or virtual environment
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir --user torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir --user -r requirements.txt
+    pip install --no-cache-dir --user torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir --user -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 # ------------------------------------------------------------------------------
 # Stage 2: Minimal Production Runtime
