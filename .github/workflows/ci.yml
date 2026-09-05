@@ -36,7 +36,7 @@ jobs:
 
       - name: Run Static Type Checking (mypy)
         run: |
-          mypy src/api/ src/rag/config.py src/explainability/core/schema.py
+          mypy src/api/ src/agent/ src/rag/config.py src/explainability/core/schema.py
 
   automated-tests:
     name: Multimodal Unit & Integration Tests

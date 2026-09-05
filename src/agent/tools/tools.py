@@ -27,7 +27,7 @@ class BaseAgentTool(ABC):
         pass
 
     @abstractmethod
-    def execute(self, **kwargs) -> Any:
+    def execute(self, *args: Any, **kwargs: Any) -> Any:
         pass
 
 

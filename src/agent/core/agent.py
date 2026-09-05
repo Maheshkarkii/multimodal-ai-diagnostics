@@ -198,7 +198,7 @@ class DiagnosticReasoningAgent:
         # Deduplicate
         return list(dict.fromkeys(queries))[:3]
 
-    def _detect_contradictions_and_gaps(self, state: DiagnosticState) -> (list[ContradictionRecord], list[str]):
+    def _detect_contradictions_and_gaps(self, state: DiagnosticState) -> tuple[list[ContradictionRecord], list[str]]:
         """Detect conflicting signals across modality predictions and sensor states."""
         contradictions: list[ContradictionRecord] = []
         missing_info: list[str] = []
