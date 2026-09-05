@@ -1,16 +1,18 @@
-﻿"""
+"""
 Configuration Dataclasses for Phase 8 Explainability and Auditable Reporting.
 """
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
+
 import yaml
 
 
 @dataclass
 class VisionExplainabilityConfig:
     """Settings for vision saliency and feature attribution."""
+
     method: str = "gradcam"  # "gradcam", "saliency", "occlusion", "none"
     target_layer: str = "features"  # Backbone feature extraction layer
     colormap: str = "inferno"
@@ -22,6 +24,7 @@ class VisionExplainabilityConfig:
 @dataclass
 class AudioExplainabilityConfig:
     """Settings for acoustic feature and spectrogram visualization."""
+
     generate_mel_spectrogram: bool = True
     highlight_frequency_bands: bool = True
     save_visualizations: bool = True
@@ -31,6 +34,7 @@ class AudioExplainabilityConfig:
 @dataclass
 class SensorExplainabilityConfig:
     """Settings for sensor threshold analysis and deviation plotting."""
+
     generate_radar_plot: bool = True
     generate_envelope_plot: bool = True
     save_visualizations: bool = True
@@ -40,6 +44,7 @@ class SensorExplainabilityConfig:
 @dataclass
 class CitationValidationConfig:
     """Settings for technical document citation verification."""
+
     strict_verification: bool = True
     require_page_match: bool = True
     require_section_match: bool = False
@@ -49,6 +54,7 @@ class CitationValidationConfig:
 @dataclass
 class AuditConfig:
     """Settings for auditable diagnostic execution tracking."""
+
     enable_audit_trail: bool = True
     audit_storage_dir: str = "reports/audit"
     record_input_hashes: bool = True
@@ -58,6 +64,7 @@ class AuditConfig:
 @dataclass
 class ExplainabilityConfig:
     """Master Explainability and Auditable Diagnostic Report Configuration."""
+
     system_name: str = "explainability_and_auditable_reports"
     report_version: str = "1.0.0"
     vision_model_version: str = "vision_mobilenetv2_v1"
@@ -73,18 +80,18 @@ class ExplainabilityConfig:
     audit: AuditConfig = field(default_factory=AuditConfig)
 
     @classmethod
-    def from_yaml(cls, yaml_path: Union[str, Path]) -> "ExplainabilityConfig":
+    def from_yaml(cls, yaml_path: str | Path) -> "ExplainabilityConfig":
         yaml_path = Path(yaml_path)
         if not yaml_path.exists():
             raise FileNotFoundError(f"Explainability config file not found: {yaml_path}")
 
-        with open(yaml_path, "r", encoding="utf-8") as f:
+        with open(yaml_path, encoding="utf-8") as f:
             raw_dict = yaml.safe_load(f) or {}
 
         return cls.from_dict(raw_dict)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "ExplainabilityConfig":
+    def from_dict(cls, d: dict[str, Any]) -> "ExplainabilityConfig":
         return cls(
             system_name=d.get("system_name", "explainability_and_auditable_reports"),
             report_version=d.get("report_version", "1.0.0"),
@@ -101,7 +108,7 @@ class ExplainabilityConfig:
             audit=AuditConfig(**d.get("audit", {})),
         )
 
-    def to_yaml(self, save_path: Union[str, Path]) -> None:
+    def to_yaml(self, save_path: str | Path) -> None:
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w", encoding="utf-8") as f:

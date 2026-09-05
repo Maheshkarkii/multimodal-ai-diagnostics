@@ -4,13 +4,11 @@ Handles multipart uploaded files, validates mime-types and size limits,
 and guarantees deterministic temporary cleanup.
 """
 
-from pathlib import Path
-import shutil
-import tempfile
-import uuid
 import logging
-from typing import Optional, Tuple, Union
-from fastapi import UploadFile, HTTPException, status
+import uuid
+from pathlib import Path
+
+from fastapi import HTTPException, UploadFile, status
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,7 @@ class FileValidationService:
         if len(content) > self.max_img_bytes:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"Image file exceeds maximum allowable size of {self.max_img_bytes / (1024*1024):.1f} MB",
+                detail=f"Image file exceeds maximum allowable size of {self.max_img_bytes / (1024 * 1024):.1f} MB",
             )
 
         # Safe unique path
@@ -67,7 +65,7 @@ class FileValidationService:
         if len(content) > self.max_aud_bytes:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"Audio file exceeds maximum allowable size of {self.max_aud_bytes / (1024*1024):.1f} MB",
+                detail=f"Audio file exceeds maximum allowable size of {self.max_aud_bytes / (1024 * 1024):.1f} MB",
             )
 
         safe_filename = f"aud_{uuid.uuid4().hex[:12]}{ext}"
@@ -75,7 +73,7 @@ class FileValidationService:
         save_path.write_bytes(content)
         return save_path
 
-    def cleanup_file(self, file_path: Optional[Union[Path, str]]) -> None:
+    def cleanup_file(self, file_path: Path | str | None) -> None:
         """Securely remove temporary file."""
         if file_path:
             p = Path(file_path)

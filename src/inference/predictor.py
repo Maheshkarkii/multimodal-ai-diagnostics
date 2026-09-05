@@ -1,18 +1,18 @@
-﻿"""
+"""
 Industrial Vision Diagnostics Inference & Multimodal Feature Embedding Predictor.
 """
 
 from pathlib import Path
-from typing import Dict, Any, List, Union, Optional, Tuple
+from typing import Any
+
 import numpy as np
-from PIL import Image
 import torch
 import torch.nn as nn
+from PIL import Image
 
 from src.preprocessing.transforms import get_industrial_eval_transforms
-from src.vision.model import build_vision_model
 from src.utils.device import resolve_device
-
+from src.vision.model import build_vision_model
 
 DEFAULT_FAULT_CLASSES = [
     "normal",
@@ -30,9 +30,9 @@ class VisionPredictor:
 
     def __init__(
         self,
-        checkpoint_path: Optional[Union[str, Path]] = None,
-        model: Optional[nn.Module] = None,
-        class_names: Optional[List[str]] = None,
+        checkpoint_path: str | Path | None = None,
+        model: nn.Module | None = None,
+        class_names: list[str] | None = None,
         image_size: int = 224,
         device: str = "auto",
     ):
@@ -67,10 +67,10 @@ class VisionPredictor:
     @torch.no_grad()
     def predict(
         self,
-        image_input: Union[str, Path, Image.Image, np.ndarray],
+        image_input: str | Path | Image.Image | np.ndarray,
         top_k: int = 3,
         return_embedding: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute diagnostic prediction on an equipment image.
         """

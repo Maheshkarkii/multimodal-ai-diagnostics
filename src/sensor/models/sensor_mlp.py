@@ -1,8 +1,7 @@
-﻿"""
+"""
 Sensor State Classification MLP with 256-dim Intermediate Embedding Extraction.
 """
 
-from typing import Tuple, List, Optional, Union
 import torch
 import torch.nn as nn
 
@@ -20,7 +19,7 @@ class SensorMLP(nn.Module):
         self,
         in_features: int = 6,
         num_classes: int = 5,
-        hidden_dims: Optional[List[int]] = None,
+        hidden_dims: list[int] | None = None,
         embedding_dim: int = 256,
         dropout: float = 0.2,
     ):
@@ -34,20 +33,24 @@ class SensorMLP(nn.Module):
         layers = []
         prev_dim = in_features
         for h_dim in hidden_dims:
-            layers.extend([
-                nn.Linear(prev_dim, h_dim),
-                nn.BatchNorm1d(h_dim),
-                nn.ReLU(inplace=True),
-                nn.Dropout(p=dropout),
-            ])
+            layers.extend(
+                [
+                    nn.Linear(prev_dim, h_dim),
+                    nn.BatchNorm1d(h_dim),
+                    nn.ReLU(inplace=True),
+                    nn.Dropout(p=dropout),
+                ]
+            )
             prev_dim = h_dim
 
         # Final projection to fixed embedding_dim (256)
-        layers.extend([
-            nn.Linear(prev_dim, embedding_dim),
-            nn.BatchNorm1d(embedding_dim),
-            nn.ReLU(inplace=True),
-        ])
+        layers.extend(
+            [
+                nn.Linear(prev_dim, embedding_dim),
+                nn.BatchNorm1d(embedding_dim),
+                nn.ReLU(inplace=True),
+            ]
+        )
         self.encoder = nn.Sequential(*layers)
 
         # 2. Diagnostic Classification Head
@@ -70,7 +73,7 @@ class SensorMLP(nn.Module):
 
     def forward(
         self, x: torch.Tensor, return_features: bool = False
-    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass.
 
@@ -88,7 +91,7 @@ class SensorMLP(nn.Module):
 def build_sensor_model(
     in_features: int = 6,
     num_classes: int = 5,
-    hidden_dims: Optional[List[int]] = None,
+    hidden_dims: list[int] | None = None,
     embedding_dim: int = 256,
     dropout: float = 0.2,
 ) -> SensorMLP:

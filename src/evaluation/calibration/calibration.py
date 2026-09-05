@@ -3,15 +3,15 @@ Confidence Calibration and Reliability Curve Engine.
 Computes Expected Calibration Error (ECE), Brier Score, and Confidence vs Accuracy Bins.
 """
 
-from typing import List, Tuple
 import numpy as np
+
 from src.evaluation.schemas import CalibrationMetrics
 
 
 def compute_calibration_metrics(
-    y_true: List[int],
-    y_prob_max: List[float],
-    y_pred: List[int],
+    y_true: list[int],
+    y_prob_max: list[float],
+    y_pred: list[int],
     num_bins: int = 10,
 ) -> CalibrationMetrics:
     """
@@ -23,7 +23,6 @@ def compute_calibration_metrics(
 
     confidences = np.array(y_prob_max)
     accuracies = np.array(y_true) == np.array(y_pred)
-    N = len(y_true)
 
     bin_boundaries = np.linspace(0, 1, num_bins + 1)
     bin_confidences = []
@@ -33,8 +32,12 @@ def compute_calibration_metrics(
     for i in range(num_bins):
         bin_lower = bin_boundaries[i]
         bin_upper = bin_boundaries[i + 1]
-        
-        in_bin = (confidences > bin_lower) & (confidences <= bin_upper) if i > 0 else (confidences >= bin_lower) & (confidences <= bin_upper)
+
+        in_bin = (
+            (confidences > bin_lower) & (confidences <= bin_upper)
+            if i > 0
+            else (confidences >= bin_lower) & (confidences <= bin_upper)
+        )
         prop_in_bin = np.mean(in_bin)
 
         if prop_in_bin > 0:

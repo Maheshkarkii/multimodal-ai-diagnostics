@@ -1,33 +1,27 @@
-﻿"""
+"""
 Unit and Integration Tests for Phase 7 Diagnostic Reasoning Agent.
 """
 
 import tempfile
-import pytest
-from pathlib import Path
 
-from src.agent.core.config import AgentConfig, LLMConfig
+import pytest
+
+from src.agent.core.agent import DiagnosticReasoningAgent
 from src.agent.core.schema import (
-    DiagnosticReport,
-    DiagnosticState,
     ModalityObservation,
     ModalityType,
-    SensorMeasurement,
     SeverityLevel,
 )
-from src.agent.core.agent import DiagnosticReasoningAgent
-from src.agent.llm.provider import MockLLMProvider, LLMDiagnosticOutputSchema
 from src.agent.tools.tools import (
     ISOVibrationStandardTool,
     SensorStateInspectionTool,
-    TechnicalKnowledgeRetrievalTool,
 )
 from src.agent.validation.groundedness import GroundednessChecker
-from src.rag.config import VectorStoreConfig, RetrievalConfig
+from src.rag.config import RetrievalConfig, VectorStoreConfig
 from src.rag.embeddings.model import DeterministicDenseEmbeddingModel
+from src.rag.retrieval.retriever import TechnicalRetriever
 from src.rag.schema import DocumentChunk
 from src.rag.vectorstore.store import NumpyFlatVectorStore
-from src.rag.retrieval.retriever import TechnicalRetriever
 
 
 @pytest.fixture
@@ -44,7 +38,7 @@ def mock_retriever():
         text="SECTION 2: BEARING INSPECTION. Perform ultrasound check and grease discoloration test.",
         chunk_index=0,
         section="BEARING INSPECTION",
-        equipment_type="motor"
+        equipment_type="motor",
     )
     store.add_chunks([chunk], emb.embed_documents([chunk.text]))
     return TechnicalRetriever(store, emb, RetrievalConfig(similarity_threshold=0.01))
@@ -55,8 +49,14 @@ def test_sensor_state_inspection_and_iso_tool():
     iso_tool = ISOVibrationStandardTool()
 
     readings = [
-        {"parameter": "Vibration_RMS", "value": 6.8, "unit": "mm/s", "warning_threshold": 4.5, "critical_threshold": 7.1},
-        {"parameter": "Bearing_Temp", "value": 85.0, "unit": "degC", "normal_max": 70.0, "critical_threshold": 90.0}
+        {
+            "parameter": "Vibration_RMS",
+            "value": 6.8,
+            "unit": "mm/s",
+            "warning_threshold": 4.5,
+            "critical_threshold": 7.1,
+        },
+        {"parameter": "Bearing_Temp", "value": 85.0, "unit": "degC", "normal_max": 70.0, "critical_threshold": 90.0},
     ]
 
     results = sensor_tool.execute(readings)
@@ -73,12 +73,13 @@ def test_groundedness_checker():
     checker = GroundednessChecker(groundedness_threshold=0.50)
 
     from src.agent.core.schema import DiagnosticEvidenceItem, EvidenceType
+
     evidence = [
         DiagnosticEvidenceItem(
             evidence_id="ev1",
             evidence_type=EvidenceType.RETRIEVED_KNOWLEDGE,
             source="motor_manual.pdf (Page 2)",
-            statement="Bearing defect causes high BPFI squeal and elevated vibration."
+            statement="Bearing defect causes high BPFI squeal and elevated vibration.",
         )
     ]
 
@@ -106,7 +107,7 @@ def test_cross_modality_contradiction_detection(mock_retriever):
             modality=ModalityType.AUDIO,
             prediction="bearing_defect_wear",
             confidence=0.88,
-        )
+        ),
     }
 
     report = agent.diagnose_case(
@@ -130,7 +131,13 @@ def test_end_to_end_diagnostic_workflow(mock_retriever):
         )
     }
     sensors = [
-        {"parameter": "Vibration_RMS", "value": 6.8, "unit": "mm/s", "warning_threshold": 4.5, "critical_threshold": 7.1}
+        {
+            "parameter": "Vibration_RMS",
+            "value": 6.8,
+            "unit": "mm/s",
+            "warning_threshold": 4.5,
+            "critical_threshold": 7.1,
+        }
     ]
 
     report = agent.diagnose_case(

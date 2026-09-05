@@ -1,6 +1,6 @@
 {
   "case_id": "C1",
-  "timestamp": "2026-09-04 21:30:21",
+  "timestamp": "2026-09-05 22:01:23",
   "system_version": "explainability_and_auditable_reports",
   "report_version": "1.0.0",
   "model_versions": {
@@ -23,5 +23,5 @@
   "final_diagnosis": "bearing_defect_wear",
   "diagnostic_confidence": 0.88,
   "status": "DIAGNOSIS_SUPPORTED",
-  "execution_duration_ms": 606.834888458252
+  "execution_duration_ms": 697.0961093902588
 }

@@ -1,17 +1,18 @@
-﻿"""
+"""
 Sensor Telemetry Inference Engine with Anomaly Scoring and 256-dim Feature Embedding Extraction.
 """
 
 from pathlib import Path
-from typing import Dict, Any, List, Union, Optional
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 
+from src.sensor.models.anomaly_detector import SensorAnomalyDetector
 from src.sensor.models.sensor_mlp import build_sensor_model
 from src.sensor.preprocessing.sensor_scaler import SensorPreprocessor
-from src.sensor.models.anomaly_detector import SensorAnomalyDetector
 from src.utils.device import resolve_device
 
 
@@ -20,11 +21,11 @@ class SensorPredictor:
 
     def __init__(
         self,
-        checkpoint_path: Optional[Union[str, Path]] = None,
-        model: Optional[nn.Module] = None,
-        preprocessor: Optional[SensorPreprocessor] = None,
-        anomaly_detector: Optional[SensorAnomalyDetector] = None,
-        class_names: Optional[List[str]] = None,
+        checkpoint_path: str | Path | None = None,
+        model: nn.Module | None = None,
+        preprocessor: SensorPreprocessor | None = None,
+        anomaly_detector: SensorAnomalyDetector | None = None,
+        class_names: list[str] | None = None,
         device: str = "auto",
     ):
         self.device = resolve_device(device)
@@ -65,10 +66,10 @@ class SensorPredictor:
     @torch.no_grad()
     def predict(
         self,
-        sensor_input: Union[Dict[str, float], pd.DataFrame, np.ndarray],
+        sensor_input: dict[str, float] | pd.DataFrame | np.ndarray,
         top_k: int = 3,
         return_embedding: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run inference on structured sensor measurements.
 

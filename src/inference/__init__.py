@@ -1,3 +1,3 @@
-﻿from .predictor import VisionPredictor
+from .predictor import VisionPredictor
 
 __all__ = ["VisionPredictor"]

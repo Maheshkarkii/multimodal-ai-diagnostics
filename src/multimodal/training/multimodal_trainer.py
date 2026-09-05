@@ -1,9 +1,10 @@
-﻿"""
+"""
 Multimodal Training Controller with Modality-Ablation Benchmarking.
 """
 
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Any
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -22,8 +23,8 @@ class MultimodalTrainer:
         train_loader: DataLoader,
         val_loader: DataLoader,
         config: ExperimentConfig,
-        class_weights: Optional[torch.Tensor] = None,
-        logger: Optional[Any] = None,
+        class_weights: torch.Tensor | None = None,
+        logger: Any | None = None,
     ):
         self.config = config
         self.logger = logger or setup_logger("MultimodalTrainer", level=config.system.log_level)
@@ -47,16 +48,14 @@ class MultimodalTrainer:
             weight_decay=config.training.weight_decay,
         )
 
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optimizer, T_max=config.training.epochs
-        )
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=config.training.epochs)
 
         self.checkpoint_dir = Path(config.system.checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.best_val_acc = 0.0
         self.best_epoch = 0
 
-    def train_epoch(self, epoch: int) -> Dict[str, float]:
+    def train_epoch(self, epoch: int) -> dict[str, float]:
         self.model.train()
         running_loss = 0.0
         correct = 0
@@ -73,9 +72,7 @@ class MultimodalTrainer:
             loss.backward()
 
             if self.config.training.gradient_clip_val:
-                nn.utils.clip_grad_norm_(
-                    self.model.parameters(), self.config.training.gradient_clip_val
-                )
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.config.training.gradient_clip_val)
 
             self.optimizer.step()
 
@@ -90,7 +87,7 @@ class MultimodalTrainer:
         }
 
     @torch.no_grad()
-    def validate(self) -> Dict[str, float]:
+    def validate(self) -> dict[str, float]:
         self.model.eval()
         running_loss = 0.0
         correct = 0
@@ -114,7 +111,7 @@ class MultimodalTrainer:
             "accuracy": correct / max(total, 1),
         }
 
-    def train(self) -> Dict[str, Any]:
+    def train(self) -> dict[str, Any]:
         epochs = self.config.training.epochs
         self.logger.info("Starting multimodal training for %d epochs on %s", epochs, self.device)
         history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
@@ -131,20 +128,28 @@ class MultimodalTrainer:
 
             self.logger.info(
                 "Epoch %d/%d | Train Loss: %.4f | Train Acc: %.4f | Val Loss: %.4f | Val Acc: %.4f",
-                epoch, epochs, t_m["loss"], t_m["accuracy"], v_m["loss"], v_m["accuracy"]
+                epoch,
+                epochs,
+                t_m["loss"],
+                t_m["accuracy"],
+                v_m["loss"],
+                v_m["accuracy"],
             )
 
             if v_m["accuracy"] > self.best_val_acc:
                 self.best_val_acc = v_m["accuracy"]
                 self.best_epoch = epoch
                 ckpt_path = self.checkpoint_dir / f"{self.config.experiment_name}_best.pt"
-                torch.save({
-                    "epoch": epoch,
-                    "val_accuracy": self.best_val_acc,
-                    "model_state_dict": self.model.state_dict(),
-                    "optimizer_state_dict": self.optimizer.state_dict(),
-                    "class_names": self.config.dataset.classes,
-                }, ckpt_path)
+                torch.save(
+                    {
+                        "epoch": epoch,
+                        "val_accuracy": self.best_val_acc,
+                        "model_state_dict": self.model.state_dict(),
+                        "optimizer_state_dict": self.optimizer.state_dict(),
+                        "class_names": self.config.dataset.classes,
+                    },
+                    ckpt_path,
+                )
                 self.logger.info("Saved best multimodal checkpoint: %s (Val Acc: %.4f)", ckpt_path, self.best_val_acc)
 
         return history

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Ingestion module exports.
 """
 

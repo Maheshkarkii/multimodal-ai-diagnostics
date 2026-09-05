@@ -1,27 +1,22 @@
-﻿"""
+"""
 Multi-Stage Diagnostic Reasoning Orchestration Engine.
 Orchestrates observation gathering, RAG technical retrieval, hypothesis generation,
 evidence matching, contradiction detection, and report generation.
 """
 
-from datetime import datetime
-import json
 import logging
-from typing import Any, Dict, List, Optional
 import uuid
+from datetime import datetime
+from typing import Any
 
 from src.agent.core.config import AgentConfig
 from src.agent.core.schema import (
     ContradictionRecord,
     DiagnosticEvidenceItem,
-    DiagnosticHypothesis,
     DiagnosticReport,
     DiagnosticState,
     EvidenceType,
     ModalityObservation,
-    RecommendedAction,
-    SensorMeasurement,
-    SeverityLevel,
 )
 from src.agent.llm.provider import BaseLLMProvider, create_llm_provider
 from src.agent.tools.tools import (
@@ -44,8 +39,8 @@ class DiagnosticReasoningAgent:
     def __init__(
         self,
         retriever: TechnicalRetriever,
-        config: Optional[AgentConfig] = None,
-        llm_provider: Optional[BaseLLMProvider] = None,
+        config: AgentConfig | None = None,
+        llm_provider: BaseLLMProvider | None = None,
     ):
         self.config = config or AgentConfig()
         self.retriever = retriever
@@ -55,18 +50,16 @@ class DiagnosticReasoningAgent:
         self.rag_tool = TechnicalKnowledgeRetrievalTool(retriever)
         self.sensor_tool = SensorStateInspectionTool()
         self.iso_tool = ISOVibrationStandardTool()
-        self.groundedness_checker = GroundednessChecker(
-            self.config.reasoning.groundedness_threshold
-        )
+        self.groundedness_checker = GroundednessChecker(self.config.reasoning.groundedness_threshold)
 
     def diagnose_case(
         self,
-        case_id: Optional[str] = None,
+        case_id: str | None = None,
         equipment_type: str = "motor",
-        equipment_model: Optional[str] = None,
+        equipment_model: str | None = None,
         technician_description: str = "",
-        observations: Optional[Dict[str, ModalityObservation]] = None,
-        sensor_data: Optional[List[Dict[str, Any]]] = None,
+        observations: dict[str, ModalityObservation] | None = None,
+        sensor_data: list[dict[str, Any]] | None = None,
     ) -> DiagnosticReport:
         """
         Execute bounded multi-stage diagnostic reasoning workflow.
@@ -87,20 +80,16 @@ class DiagnosticReasoningAgent:
             measurements = self.sensor_tool.execute(sensor_data)
             state.sensor_measurements = measurements
             for m in measurements:
-                state.add_trace(
-                    "SENSOR_CHECK",
-                    f"Measured {m.parameter}: {m.value} {m.unit} (Status: {m.status})"
-                )
+                state.add_trace("SENSOR_CHECK", f"Measured {m.parameter}: {m.value} {m.unit} (Status: {m.status})")
                 if m.parameter.lower() == "vibration" or "vibration" in m.parameter.lower():
                     iso_eval = self.iso_tool.execute(m.value)
                     state.add_trace(
-                        "ISO_CHECK",
-                        f"ISO 10816-3 Evaluation: {iso_eval['iso_zone']} ({iso_eval['severity']})"
+                        "ISO_CHECK", f"ISO 10816-3 Evaluation: {iso_eval['iso_zone']} ({iso_eval['severity']})"
                     )
 
         # Stage 2: Formulate Retrieval Questions & Query Technical RAG
         retrieval_queries = self._generate_retrieval_queries(state)
-        all_rag_evidence: List[DiagnosticEvidenceItem] = []
+        all_rag_evidence: list[DiagnosticEvidenceItem] = []
 
         for q in retrieval_queries:
             items = self.rag_tool.execute(
@@ -138,7 +127,7 @@ class DiagnosticReasoningAgent:
 
         state.add_trace(
             "GROUNDEDNESS_VALIDATION",
-            f"Evidence Groundedness Score: {groundedness_score*100:.1f}% ({len(unsupported_claims)} warnings)"
+            f"Evidence Groundedness Score: {groundedness_score * 100:.1f}% ({len(unsupported_claims)} warnings)",
         )
 
         # Stage 6: Build Final Report
@@ -178,7 +167,7 @@ class DiagnosticReasoningAgent:
 
         return report
 
-    def _generate_retrieval_queries(self, state: DiagnosticState) -> List[str]:
+    def _generate_retrieval_queries(self, state: DiagnosticState) -> list[str]:
         """Generate targeted retrieval questions based on symptoms and observations."""
         queries = []
         eq = state.equipment_type
@@ -188,8 +177,13 @@ class DiagnosticReasoningAgent:
             queries.append(f"{eq} {state.technician_description}")
 
         # Query from model predictions
-        for mod, obs in state.observations.items():
-            if "defect" in obs.prediction or "fault" in obs.prediction or "cavitation" in obs.prediction or "unbalance" in obs.prediction:
+        for _mod, obs in state.observations.items():
+            if (
+                "defect" in obs.prediction
+                or "fault" in obs.prediction
+                or "cavitation" in obs.prediction
+                or "unbalance" in obs.prediction
+            ):
                 queries.append(f"{eq} {obs.prediction} inspection steps and symptoms")
 
         # Query from sensor anomalies
@@ -204,12 +198,10 @@ class DiagnosticReasoningAgent:
         # Deduplicate
         return list(dict.fromkeys(queries))[:3]
 
-    def _detect_contradictions_and_gaps(
-        self, state: DiagnosticState
-    ) -> (List[ContradictionRecord], List[str]):
+    def _detect_contradictions_and_gaps(self, state: DiagnosticState) -> (list[ContradictionRecord], list[str]):
         """Detect conflicting signals across modality predictions and sensor states."""
-        contradictions: List[ContradictionRecord] = []
-        missing_info: List[str] = []
+        contradictions: list[ContradictionRecord] = []
+        missing_info: list[str] = []
 
         # Cross-modality contradiction detection
         preds = {k: v.prediction for k, v in state.observations.items()}
@@ -236,9 +228,9 @@ class DiagnosticReasoningAgent:
 
         return contradictions, missing_info
 
-    def _assemble_all_evidence(self, state: DiagnosticState) -> List[DiagnosticEvidenceItem]:
+    def _assemble_all_evidence(self, state: DiagnosticState) -> list[DiagnosticEvidenceItem]:
         """Combine all observed measurements, model predictions, and retrieved manual chunks."""
-        pool: List[DiagnosticEvidenceItem] = []
+        pool: list[DiagnosticEvidenceItem] = []
 
         # Model inferences
         for mod, obs in state.observations.items():
@@ -283,7 +275,7 @@ class DiagnosticReasoningAgent:
             f"EQUIPMENT: {state.equipment_type} (Model: {state.equipment_model or 'Unspecified'})",
             f"TECHNICIAN NOTES: {state.technician_description or 'None'}",
             "",
-            "=== OBSERVED MODALITY PREDICTIONS ==="
+            "=== OBSERVED MODALITY PREDICTIONS ===",
         ]
 
         for mod, obs in state.observations.items():

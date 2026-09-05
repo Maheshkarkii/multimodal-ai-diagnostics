@@ -1,10 +1,11 @@
-﻿"""
+"""
 Unified Experiment Configuration system supporting Vision, Audio, Sensor, and Multimodal Fusion.
 """
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional, Union, List
+from typing import Any
+
 import yaml
 
 
@@ -44,18 +45,18 @@ class MultimodalConfig:
     sensor_dim: int = 256
     text_dim: int = 256
     shared_projection_dim: int = 256
-    fusion_hidden_dims: List[int] = field(default_factory=lambda: [512, 256])
+    fusion_hidden_dims: list[int] = field(default_factory=lambda: [512, 256])
     unified_embedding_dim: int = 256
     dropout: float = 0.25
     modality_dropout_prob: float = 0.20
-    enabled_modalities: List[str] = field(default_factory=lambda: ["vision", "audio", "sensor", "text"])
+    enabled_modalities: list[str] = field(default_factory=lambda: ["vision", "audio", "sensor", "text"])
 
 
 @dataclass
 class DatasetConfig:
     name: str = "industrial_diagnostics"
     dataset_dir: str = "data/raw"
-    manifest_path: Optional[str] = None
+    manifest_path: str | None = None
     image_size: int = 224
     sample_rate: int = 16000
     duration: float = 3.0
@@ -67,17 +68,19 @@ class DatasetConfig:
     val_split: float = 0.15
     test_split: float = 0.15
     num_classes: int = 5
-    classes: List[str] = field(default_factory=lambda: [
-        "normal",
-        "fault_1",
-        "fault_2",
-        "fault_3",
-        "fault_4",
-    ])
-    group_by: Optional[str] = None
-    timestamp_column: Optional[str] = None
-    target_column: Optional[str] = None
-    feature_columns: Optional[List[str]] = None
+    classes: list[str] = field(
+        default_factory=lambda: [
+            "normal",
+            "fault_1",
+            "fault_2",
+            "fault_3",
+            "fault_4",
+        ]
+    )
+    group_by: str | None = None
+    timestamp_column: str | None = None
+    target_column: str | None = None
+    feature_columns: list[str] | None = None
     augmentations: AugmentationConfig = field(default_factory=AugmentationConfig)
 
 
@@ -87,11 +90,11 @@ class ModelConfig:
     num_classes: int = 5
     in_channels: int = 3
     in_features: int = 6
-    hidden_dims: List[int] = field(default_factory=lambda: [128, 256, 128])
+    hidden_dims: list[int] = field(default_factory=lambda: [128, 256, 128])
     embedding_dim: int = 256
     pretrained: bool = True
     freeze_backbone: bool = True
-    unfreeze_layers: Optional[int] = None
+    unfreeze_layers: int | None = None
     dropout: float = 0.2
 
 
@@ -100,13 +103,13 @@ class TrainingConfig:
     batch_size: int = 32
     epochs: int = 10
     learning_rate: float = 1e-3
-    backbone_learning_rate: Optional[float] = 1e-4
+    backbone_learning_rate: float | None = 1e-4
     weight_decay: float = 1e-4
     optimizer: str = "adamw"
     scheduler: str = "cosine"
     mixed_precision: bool = True
     early_stopping_patience: int = 4
-    gradient_clip_val: Optional[float] = 1.0
+    gradient_clip_val: float | None = 1.0
     use_class_weights: bool = True
 
 
@@ -121,18 +124,18 @@ class ExperimentConfig:
     training: TrainingConfig = field(default_factory=TrainingConfig)
 
     @classmethod
-    def from_yaml(cls, yaml_path: Union[str, Path]) -> "ExperimentConfig":
+    def from_yaml(cls, yaml_path: str | Path) -> "ExperimentConfig":
         yaml_path = Path(yaml_path)
         if not yaml_path.exists():
             raise FileNotFoundError(f"Configuration file not found: {yaml_path}")
 
-        with open(yaml_path, "r", encoding="utf-8") as f:
+        with open(yaml_path, encoding="utf-8") as f:
             raw_dict = yaml.safe_load(f) or {}
 
         return cls.from_dict(raw_dict)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "ExperimentConfig":
+    def from_dict(cls, d: dict[str, Any]) -> "ExperimentConfig":
         dataset_data = d.get("dataset", {}).copy()
         aug_data = dataset_data.pop("augmentations", {})
         if isinstance(aug_data, dict):
@@ -160,7 +163,7 @@ class ExperimentConfig:
             training=TrainingConfig(**training_data),
         )
 
-    def to_yaml(self, save_path: Union[str, Path]) -> None:
+    def to_yaml(self, save_path: str | Path) -> None:
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w", encoding="utf-8") as f:

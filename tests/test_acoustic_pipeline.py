@@ -1,18 +1,19 @@
-﻿"""
+"""
 Unit and integration tests for Phase 3 Acoustic Intelligence pipeline.
 """
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
 import numpy as np
 import soundfile as sf
 import torch
 
-from src.audio.preprocessing.audio_transforms import AudioPreprocessor, SpecAugment
-from src.audio.models.audio_cnn import AcousticCNN, build_audio_model
 from src.audio.data.audio_dataset import MachineAudioDataset
 from src.audio.data.generate_sample_audio import generate_synthetic_acoustic_dataset
 from src.audio.inference.audio_predictor import AudioPredictor
+from src.audio.models.audio_cnn import build_audio_model
+from src.audio.preprocessing.audio_transforms import AudioPreprocessor, SpecAugment
 from src.audio.preprocessing.visualize_audio import plot_waveform_and_spectrogram
 
 

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Document Ingestion Pipeline Manager.
 Handles batch document discovery, incremental indexing change detection, and validation reporting.
 """
@@ -6,7 +6,7 @@ Handles batch document discovery, incremental indexing change detection, and val
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from src.rag.config import DocumentIngestionConfig
 from src.rag.ingestion.parser import DocumentParser, compute_file_hash
@@ -20,19 +20,19 @@ class DocumentIngestionPipeline:
 
     def __init__(
         self,
-        config: Optional[DocumentIngestionConfig] = None,
-        manifest_path: Optional[Union[str, Path]] = None,
+        config: DocumentIngestionConfig | None = None,
+        manifest_path: str | Path | None = None,
     ):
         self.config = config or DocumentIngestionConfig()
         self.parser = DocumentParser(self.config)
         self.manifest_path = Path(manifest_path) if manifest_path else None
-        self.manifest: Dict[str, Dict] = self._load_manifest()
+        self.manifest: dict[str, dict] = self._load_manifest()
 
-    def _load_manifest(self) -> Dict[str, Dict]:
+    def _load_manifest(self) -> dict[str, dict]:
         """Load persistent record of previously ingested document hashes."""
         if self.manifest_path and self.manifest_path.exists():
             try:
-                with open(self.manifest_path, "r", encoding="utf-8") as f:
+                with open(self.manifest_path, encoding="utf-8") as f:
                     return json.load(f)
             except Exception as e:
                 logger.warning(f"Could not load manifest from {self.manifest_path}: {e}")
@@ -45,27 +45,27 @@ class DocumentIngestionPipeline:
             with open(self.manifest_path, "w", encoding="utf-8") as f:
                 json.dump(self.manifest, f, indent=2)
 
-    def scan_directory(self, dir_path: Union[str, Path]) -> List[Path]:
+    def scan_directory(self, dir_path: str | Path) -> list[Path]:
         """Recursively scan a directory for supported technical document files."""
         dir_path = Path(dir_path)
         if not dir_path.exists():
             return []
 
-        found_files: List[Path] = []
+        found_files: list[Path] = []
         for ext in self.config.supported_extensions:
             found_files.extend(dir_path.rglob(f"*{ext}"))
             found_files.extend(dir_path.rglob(f"*{ext.upper()}"))
 
         # Deduplicate and sort for deterministic ordering
-        unique_paths = sorted(list({p.resolve() for p in found_files}))
+        unique_paths = sorted({p.resolve() for p in found_files})
         return unique_paths
 
     def ingest_document(
         self,
-        file_path: Union[str, Path],
+        file_path: str | Path,
         force_reindex: bool = False,
-        extra_metadata: Optional[Dict] = None,
-    ) -> Tuple[Optional[DocumentMetadata], List[RawDocumentPage], bool]:
+        extra_metadata: dict | None = None,
+    ) -> tuple[DocumentMetadata | None, list[RawDocumentPage], bool]:
         """
         Ingest a single document file.
         Returns:
@@ -102,10 +102,10 @@ class DocumentIngestionPipeline:
 
     def ingest_directory(
         self,
-        dir_path: Union[str, Path],
+        dir_path: str | Path,
         force_reindex: bool = False,
-        metadata_map: Optional[Dict[str, Dict]] = None,
-    ) -> Dict[str, Any]:
+        metadata_map: dict[str, dict] | None = None,
+    ) -> dict[str, Any]:
         """
         Batch ingest all documents found in a directory.
         Returns detailed summary statistics.
@@ -114,9 +114,9 @@ class DocumentIngestionPipeline:
         doc_paths = self.scan_directory(dir_path)
         meta_map = metadata_map or {}
 
-        results: List[Tuple[DocumentMetadata, List[RawDocumentPage]]] = []
+        results: list[tuple[DocumentMetadata, list[RawDocumentPage]]] = []
         skipped_count = 0
-        failed_files: List[Tuple[str, str]] = []
+        failed_files: list[tuple[str, str]] = []
 
         total_pages = 0
 

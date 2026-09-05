@@ -1,18 +1,13 @@
-﻿"""
+"""
 Structured logging configuration.
 """
 
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 
-def setup_logger(
-    name: str = "field_engineer",
-    level: str = "INFO",
-    log_file: Optional[Path] = None
-) -> logging.Logger:
+def setup_logger(name: str = "field_engineer", level: str = "INFO", log_file: Path | None = None) -> logging.Logger:
     """
     Set up standardized console and optional file logging.
 
@@ -32,8 +27,7 @@ def setup_logger(
         logger.handlers.clear()
 
     formatter = logging.Formatter(
-        fmt="[%(asctime)s] [%(levelname)s] [%(name)s:%(lineno)d] - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        fmt="[%(asctime)s] [%(levelname)s] [%(name)s:%(lineno)d] - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
 
     console_handler = logging.StreamHandler(sys.stdout)

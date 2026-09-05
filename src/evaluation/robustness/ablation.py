@@ -3,14 +3,15 @@ Multimodal Modality Ablation and Missing-Input Robustness Evaluator.
 Measures performance degradation under single and multi-modality dropouts.
 """
 
-from typing import Any, Callable, Dict, List
-import numpy as np
+from collections.abc import Callable
+from typing import Any
+
 from src.evaluation.schemas import RobustnessMetrics
 
 
 def run_modality_ablation_study(
-    cases: List[Dict[str, Any]],
-    predict_fn: Callable[[Dict[str, Any], Dict[str, bool]], str],
+    cases: list[dict[str, Any]],
+    predict_fn: Callable[[dict[str, Any], dict[str, bool]], str],
 ) -> RobustnessMetrics:
     """
     Evaluates system F1 and accuracy across complete vs ablated modality permutations.
@@ -18,7 +19,7 @@ def run_modality_ablation_study(
     if not cases:
         return RobustnessMetrics()
 
-    def eval_subset(mask: Dict[str, bool]) -> float:
+    def eval_subset(mask: dict[str, bool]) -> float:
         correct = 0
         total = 0
         for c in cases:

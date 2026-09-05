@@ -1,9 +1,9 @@
-﻿"""
+"""
 Sensor telemetry preprocessing, missing-value imputation, and leakage-safe standard scaling.
 """
 
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Union
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -17,18 +17,17 @@ class SensorPreprocessor:
     EXCLUSIVELY on the training partition and transformed onto validation, test, and inference queries.
     """
 
-    def __init__(self, feature_columns: List[str]):
+    def __init__(self, feature_columns: list[str]):
         self.feature_columns = feature_columns
         self.scaler = StandardScaler()
-        self.impute_values: Dict[str, float] = {}
+        self.impute_values: dict[str, float] = {}
         self.is_fitted = False
 
     def fit(self, df_train: pd.DataFrame) -> "SensorPreprocessor":
         """Fit imputation medians and scaling parameters on training split only."""
         # 1. Compute robust medians for missing value imputation
         self.impute_values = {
-            col: float(df_train[col].median()) if col in df_train else 0.0
-            for col in self.feature_columns
+            col: float(df_train[col].median()) if col in df_train else 0.0 for col in self.feature_columns
         }
 
         # 2. Impute and fit standard scaler
@@ -54,7 +53,7 @@ class SensorPreprocessor:
     def fit_transform(self, df_train: pd.DataFrame) -> np.ndarray:
         return self.fit(df_train).transform(df_train)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize preprocessor state for checkpoint preservation."""
         return {
             "feature_columns": self.feature_columns,
@@ -65,7 +64,7 @@ class SensorPreprocessor:
         }
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "SensorPreprocessor":
+    def from_dict(cls, d: dict[str, Any]) -> "SensorPreprocessor":
         """Reconstruct preprocessor state from serialized parameters."""
         instance = cls(feature_columns=d["feature_columns"])
         instance.impute_values = d.get("impute_values", {})
@@ -73,5 +72,5 @@ class SensorPreprocessor:
         if instance.is_fitted and d.get("scaler_mean"):
             instance.scaler.mean_ = np.array(d["scaler_mean"], dtype=np.float64)
             instance.scaler.scale_ = np.array(d["scaler_scale"], dtype=np.float64)
-            instance.scaler.var_ = instance.scaler.scale_ ** 2
+            instance.scaler.var_ = instance.scaler.scale_**2
         return instance

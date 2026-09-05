@@ -1,4 +1,4 @@
-﻿"""
+"""
 Validation module exports.
 """
 

@@ -1,9 +1,9 @@
-﻿"""
+"""
 Audio signal processing and Log-Mel Spectrogram transformation pipeline.
 """
 
 from pathlib import Path
-from typing import Tuple, Union, Optional
+
 import numpy as np
 import soundfile as sf
 import torch
@@ -58,7 +58,7 @@ class AudioPreprocessor:
         self.amplitude_to_db = T.AmplitudeToDB(top_db=80.0)
 
     def load_and_standardize_waveform(
-        self, audio_input: Union[str, Path, torch.Tensor, np.ndarray], src_sr: Optional[int] = None
+        self, audio_input: str | Path | torch.Tensor | np.ndarray, src_sr: int | None = None
     ) -> torch.Tensor:
         """Load, convert to mono, resample, and pad/crop waveform to exactly target_samples."""
         if isinstance(audio_input, (str, Path)):
@@ -123,9 +123,7 @@ class AudioPreprocessor:
 
         return normalized_log_mel
 
-    def process(
-        self, audio_input: Union[str, Path, torch.Tensor, np.ndarray], src_sr: Optional[int] = None
-    ) -> torch.Tensor:
+    def process(self, audio_input: str | Path | torch.Tensor | np.ndarray, src_sr: int | None = None) -> torch.Tensor:
         """Full end-to-end preprocessing pipeline returning normalized log-mel tensor."""
         waveform = self.load_and_standardize_waveform(audio_input, src_sr=src_sr)
         return self.compute_log_mel_spectrogram(waveform)

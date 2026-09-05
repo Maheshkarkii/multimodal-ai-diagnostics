@@ -1,13 +1,14 @@
-﻿"""
+"""
 Multimodal Evaluation & Modality-Ablation Benchmark Framework.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 import numpy as np
 import torch
 import torch.nn as nn
+from sklearn.metrics import accuracy_score, f1_score
 from torch.utils.data import DataLoader
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, confusion_matrix
 
 from src.utils.device import resolve_device
 from src.utils.logging import setup_logger
@@ -19,9 +20,9 @@ class MultimodalEvaluator:
     def __init__(
         self,
         model: nn.Module,
-        class_names: List[str],
+        class_names: list[str],
         device: str = "auto",
-        logger: Optional[Any] = None,
+        logger: Any | None = None,
     ):
         self.device = resolve_device(device)
         self.model = model.to(self.device)
@@ -32,8 +33,8 @@ class MultimodalEvaluator:
     def evaluate_combination(
         self,
         test_loader: DataLoader,
-        active_modalities: Optional[List[str]] = None,
-    ) -> Dict[str, float]:
+        active_modalities: list[str] | None = None,
+    ) -> dict[str, float]:
         """
         Evaluate performance when only a subset of modalities are supplied (missing-modality test).
         """
@@ -47,7 +48,9 @@ class MultimodalEvaluator:
             # Override masks if evaluating explicit combination
             if active_modalities is not None:
                 custom_masks = {
-                    m: torch.ones_like(masks[m]).to(self.device) if m in active_modalities else torch.zeros_like(masks[m]).to(self.device)
+                    m: torch.ones_like(masks[m]).to(self.device)
+                    if m in active_modalities
+                    else torch.zeros_like(masks[m]).to(self.device)
                     for m in ["vision", "audio", "sensor", "text"]
                 }
             else:
@@ -72,7 +75,7 @@ class MultimodalEvaluator:
             "weighted_f1": weighted_f1,
         }
 
-    def run_full_ablation_study(self, test_loader: DataLoader) -> Dict[str, Dict[str, float]]:
+    def run_full_ablation_study(self, test_loader: DataLoader) -> dict[str, dict[str, float]]:
         """
         Benchmark all combinations:
         - Unimodal: Vision only, Audio only, Sensor only, Text only
@@ -99,7 +102,10 @@ class MultimodalEvaluator:
             results[name] = metrics
             self.logger.info(
                 "%-42s | Accuracy: %6.2f%% | Macro F1: %6.4f | Weighted F1: %6.4f",
-                name, metrics["accuracy"] * 100, metrics["macro_f1"], metrics["weighted_f1"]
+                name,
+                metrics["accuracy"] * 100,
+                metrics["macro_f1"],
+                metrics["weighted_f1"],
             )
 
         return results

@@ -1,20 +1,21 @@
-﻿"""
+"""
 Sensor Explainability Module: Physical Telemetry Deviation & Envelope Visualizer.
 Plots observed sensor values against documented warning and critical threshold boundaries.
 """
 
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 import logging
+from pathlib import Path
+from typing import Any
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
 def generate_sensor_threshold_plot(
-    sensor_measurements: List[Dict[str, Any]],
-    output_path: Optional[Path] = None,
-) -> Optional[str]:
+    sensor_measurements: list[dict[str, Any]],
+    output_path: Path | None = None,
+) -> str | None:
     """
     Plot bar chart of normalized sensor measurements relative to warning and critical limits.
     """
@@ -23,13 +24,20 @@ def generate_sensor_threshold_plot(
 
     try:
         import matplotlib
+
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
 
         labels = [m.get("parameter", "P") for m in sensor_measurements]
         values = [float(m.get("value", 0.0)) for m in sensor_measurements]
-        warnings = [float(m.get("warning_threshold", 0.0)) if m.get("warning_threshold") is not None else 0.0 for m in sensor_measurements]
-        criticals = [float(m.get("critical_threshold", 0.0)) if m.get("critical_threshold") is not None else 0.0 for m in sensor_measurements]
+        warnings = [
+            float(m.get("warning_threshold", 0.0)) if m.get("warning_threshold") is not None else 0.0
+            for m in sensor_measurements
+        ]
+        criticals = [
+            float(m.get("critical_threshold", 0.0)) if m.get("critical_threshold") is not None else 0.0
+            for m in sensor_measurements
+        ]
 
         x = np.arange(len(labels))
         width = 0.28

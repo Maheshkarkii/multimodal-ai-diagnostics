@@ -1,8 +1,9 @@
-﻿"""
+"""
 Sensor Telemetry Anomaly Detection & Operating Envelope Modeling.
 """
 
-from typing import Dict, Any, List, Optional, Union
+from typing import Any
+
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
@@ -13,13 +14,13 @@ class OperatingEnvelopeDetector:
     and scores deviations based on Mahalanobis/Z-score distance.
     """
 
-    def __init__(self, feature_names: List[str], std_threshold: float = 3.0):
+    def __init__(self, feature_names: list[str], std_threshold: float = 3.0):
         self.feature_names = feature_names
         self.std_threshold = std_threshold
-        self.means: Dict[str, float] = {}
-        self.stds: Dict[str, float] = {}
-        self.mins: Dict[str, float] = {}
-        self.maxs: Dict[str, float] = {}
+        self.means: dict[str, float] = {}
+        self.stds: dict[str, float] = {}
+        self.mins: dict[str, float] = {}
+        self.maxs: dict[str, float] = {}
 
     def fit(self, X_normal: np.ndarray) -> "OperatingEnvelopeDetector":
         """Compute normal bounds from baseline normal telemetry."""
@@ -35,10 +36,7 @@ class OperatingEnvelopeDetector:
         """Compute max normalized deviation across all sensor channels."""
         scores = []
         for row in X:
-            row_devs = [
-                abs(row[i] - self.means[name]) / self.stds[name]
-                for i, name in enumerate(self.feature_names)
-            ]
+            row_devs = [abs(row[i] - self.means[name]) / self.stds[name] for i, name in enumerate(self.feature_names)]
             scores.append(max(row_devs))
         return np.array(scores, dtype=np.float32)
 
@@ -55,7 +53,7 @@ class SensorAnomalyDetector:
 
     def __init__(
         self,
-        feature_names: List[str],
+        feature_names: list[str],
         contamination: float = 0.05,
         n_estimators: int = 100,
         random_state: int = 42,
@@ -77,7 +75,7 @@ class SensorAnomalyDetector:
         self.is_fitted = True
         return self
 
-    def evaluate_sample(self, x_vector: np.ndarray) -> Dict[str, Any]:
+    def evaluate_sample(self, x_vector: np.ndarray) -> dict[str, Any]:
         """
         Evaluate a single telemetry observation.
 
@@ -107,7 +105,7 @@ class SensorAnomalyDetector:
             "max_envelope_deviation_sigma": envelope_dev,
         }
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "feature_names": self.feature_names,
             "contamination": self.contamination,

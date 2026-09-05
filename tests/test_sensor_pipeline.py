@@ -1,21 +1,21 @@
-﻿"""
+"""
 Unit and integration tests for Phase 4 Sensor Intelligence and Anomaly Modeling.
 """
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import pytest
 import torch
 
-from src.sensor.preprocessing.sensor_scaler import SensorPreprocessor
-from src.sensor.models.sensor_mlp import SensorMLP, build_sensor_model
-from src.sensor.models.anomaly_detector import SensorAnomalyDetector, OperatingEnvelopeDetector
-from src.sensor.data.sensor_dataset import prepare_sensor_splits_and_loaders, SensorDataValidator
-from src.sensor.data.generate_sample_telemetry import generate_synthetic_telemetry_dataset
 from src.sensor.analysis.feature_importance import compute_permutation_feature_importance
+from src.sensor.data.generate_sample_telemetry import generate_synthetic_telemetry_dataset
+from src.sensor.data.sensor_dataset import SensorDataValidator
 from src.sensor.inference.sensor_predictor import SensorPredictor
+from src.sensor.models.anomaly_detector import SensorAnomalyDetector
+from src.sensor.models.sensor_mlp import build_sensor_model
+from src.sensor.preprocessing.sensor_scaler import SensorPreprocessor
 
 
 def test_sensor_preprocessor_leakage_isolation():
@@ -67,7 +67,14 @@ def test_telemetry_generator_and_validator():
         generate_synthetic_telemetry_dataset(csv_path, num_machines=4, records_per_machine=20, seed=42)
 
         df = pd.read_csv(csv_path)
-        feature_cols = ["temperature_c", "vibration_rms_g", "rotational_speed_rpm", "motor_current_a", "hydraulic_pressure_bar", "load_percentage"]
+        feature_cols = [
+            "temperature_c",
+            "vibration_rms_g",
+            "rotational_speed_rpm",
+            "motor_current_a",
+            "hydraulic_pressure_bar",
+            "load_percentage",
+        ]
         summary = SensorDataValidator.validate_and_summarize(df, feature_cols, "fault_label", "machine_id")
 
         assert summary["total_rows"] == 80

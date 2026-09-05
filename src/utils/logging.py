@@ -1,18 +1,13 @@
-﻿"""
+"""
 Structured logger setup.
 """
 
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 
-def setup_logger(
-    name: str = "ai_field_engineer",
-    level: str = "INFO",
-    log_file: Optional[Path] = None
-) -> logging.Logger:
+def setup_logger(name: str = "ai_field_engineer", level: str = "INFO", log_file: Path | None = None) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(getattr(logging, level.upper(), logging.INFO))
 
@@ -20,8 +15,7 @@ def setup_logger(
         logger.handlers.clear()
 
     formatter = logging.Formatter(
-        fmt="[%(asctime)s] [%(levelname)s] [%(name)s] - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        fmt="[%(asctime)s] [%(levelname)s] [%(name)s] - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
 
     console_handler = logging.StreamHandler(sys.stdout)

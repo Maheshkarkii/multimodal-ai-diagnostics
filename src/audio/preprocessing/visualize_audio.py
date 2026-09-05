@@ -1,21 +1,21 @@
-﻿"""
+"""
 Acoustic signal inspection utility: generates waveform and Log-Mel Spectrogram visualizations for debugging.
 """
 
 from pathlib import Path
-from typing import Union, Optional
+
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
 
 from src.audio.preprocessing.audio_transforms import AudioPreprocessor
 
 
 def plot_waveform_and_spectrogram(
-    audio_path: Union[str, Path],
-    save_path: Optional[Union[str, Path]] = None,
+    audio_path: str | Path,
+    save_path: str | Path | None = None,
     sample_rate: int = 16000,
     duration: float = 3.0,
 ) -> None:

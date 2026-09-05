@@ -7,7 +7,8 @@ import json
 import logging
 from pathlib import Path
 from threading import Lock
-from typing import Any, Dict, List
+from typing import Any
+
 from src.feedback.schemas import HumanDiagnosticFeedback
 
 logger = logging.getLogger(__name__)
@@ -28,13 +29,13 @@ class FeedbackStore:
             with open(self.log_path, "a", encoding="utf-8") as f:
                 f.write(line)
 
-    def load_feedback(self) -> List[HumanDiagnosticFeedback]:
+    def load_feedback(self) -> list[HumanDiagnosticFeedback]:
         """Load all human feedback entries."""
         if not self.log_path.exists():
             return []
         records = []
         with self._lock:
-            with open(self.log_path, "r", encoding="utf-8") as f:
+            with open(self.log_path, encoding="utf-8") as f:
                 for line in f:
                     if line.strip():
                         try:
@@ -43,7 +44,7 @@ class FeedbackStore:
                             logger.warning(f"Error loading feedback entry: {e}")
         return records
 
-    def analyze_feedback(self) -> Dict[str, Any]:
+    def analyze_feedback(self) -> dict[str, Any]:
         """Analyze disagreement rates and frequently corrected diagnoses."""
         records = self.load_feedback()
         if not records:
@@ -51,8 +52,8 @@ class FeedbackStore:
 
         total = len(records)
         correct = sum(1 for r in records if r.is_diagnosis_accurate)
-        category_counts: Dict[str, int] = {}
-        corrections: Dict[str, int] = {}
+        category_counts: dict[str, int] = {}
+        corrections: dict[str, int] = {}
 
         for r in records:
             cat = str(r.category.value)

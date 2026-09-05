@@ -1,24 +1,23 @@
-﻿"""
+"""
 Unit and Integration tests for Phase 2 Industrial Vision components.
 """
 
-from pathlib import Path
 import tempfile
-import numpy as np
-from PIL import Image
-import torch
+from pathlib import Path
 
-from src.preprocessing.transforms import get_industrial_train_transforms, get_industrial_eval_transforms
+import numpy as np
+import torch
+from PIL import Image
+
 from src.data.dataset import (
-    IndustrialEquipmentDataset,
     DatasetValidator,
-    split_samples_group_aware,
     compute_class_weights,
+    split_samples_group_aware,
 )
 from src.data.generate_sample_dataset import generate_synthetic_industrial_dataset
-from src.vision.model import MobileNetV2Classifier, build_vision_model
-from src.analysis.error_analysis import DiagnosticErrorAnalyzer
 from src.inference.predictor import VisionPredictor
+from src.preprocessing.transforms import get_industrial_eval_transforms, get_industrial_train_transforms
+from src.vision.model import build_vision_model
 
 
 def test_industrial_transforms_and_color_jitter():

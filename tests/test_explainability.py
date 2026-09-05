@@ -1,29 +1,25 @@
-﻿"""
+"""
 Unit and Integration Tests for Phase 8 Explainability & Auditable Reporting Layer.
 """
 
 import tempfile
-import pytest
 from pathlib import Path
 
-from src.explainability.core.config import ExplainabilityConfig, AuditConfig
+import pytest
+
+from src.agent.core.schema import (
+    DiagnosticReport,
+    SeverityLevel,
+)
+from src.explainability.core.config import AuditConfig, ExplainabilityConfig
 from src.explainability.core.schema import (
     ActionRequirement,
     AuditableEvidenceItem,
-    ClaimSupportStatus,
     DiagnosticSystemStatus,
     EvidenceCategory,
     EvidenceQuality,
 )
 from src.explainability.core.service import ExplainabilityService
-from src.agent.core.schema import (
-    DiagnosticReport,
-    DiagnosticState,
-    ModalityObservation,
-    ModalityType,
-    SensorMeasurement,
-    SeverityLevel,
-)
 
 
 @pytest.fixture

@@ -1,14 +1,15 @@
-﻿"""
+"""
 Persistent Vector Database Storage.
 Provides abstract BaseVectorStore and high-performance persistent NumpyFlatVectorStore
 supporting cosine, inner-product, and Euclidean search with metadata filtering.
 """
 
-from abc import ABC, abstractmethod
 import json
 import logging
+from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any
+
 import numpy as np
 
 from src.rag.config import VectorStoreConfig
@@ -21,7 +22,7 @@ class BaseVectorStore(ABC):
     """Abstract interface for RAG vector stores."""
 
     @abstractmethod
-    def add_chunks(self, chunks: List[DocumentChunk], embeddings: np.ndarray) -> None:
+    def add_chunks(self, chunks: list[DocumentChunk], embeddings: np.ndarray) -> None:
         """Add chunks and corresponding embeddings into vector store."""
         pass
 
@@ -30,9 +31,9 @@ class BaseVectorStore(ABC):
         self,
         query_embedding: np.ndarray,
         top_k: int = 5,
-        filters: Optional[Dict[str, Any]] = None,
-        min_score: Optional[float] = None,
-    ) -> List[Tuple[DocumentChunk, float]]:
+        filters: dict[str, Any] | None = None,
+        min_score: float | None = None,
+    ) -> list[tuple[DocumentChunk, float]]:
         """Search vector database by embedding similarity."""
         pass
 
@@ -63,11 +64,11 @@ class NumpyFlatVectorStore(BaseVectorStore):
     Zero external service dependency, ideal for embedded industrial edge devices.
     """
 
-    def __init__(self, config: Optional[VectorStoreConfig] = None):
+    def __init__(self, config: VectorStoreConfig | None = None):
         self.config = config or VectorStoreConfig()
         self.persist_dir = Path(self.config.persist_directory)
-        self.chunks: List[DocumentChunk] = []
-        self.embeddings: Optional[np.ndarray] = None  # Shape: (N, D)
+        self.chunks: list[DocumentChunk] = []
+        self.embeddings: np.ndarray | None = None  # Shape: (N, D)
         self.load()
 
     @property
@@ -81,7 +82,7 @@ class NumpyFlatVectorStore(BaseVectorStore):
     def count(self) -> int:
         return len(self.chunks)
 
-    def add_chunks(self, chunks: List[DocumentChunk], embeddings: np.ndarray) -> None:
+    def add_chunks(self, chunks: list[DocumentChunk], embeddings: np.ndarray) -> None:
         """Add new chunks and embeddings. Handles duplicate chunk replacement seamlessly."""
         if not chunks:
             return
@@ -114,9 +115,9 @@ class NumpyFlatVectorStore(BaseVectorStore):
         self,
         query_embedding: np.ndarray,
         top_k: int = 5,
-        filters: Optional[Dict[str, Any]] = None,
-        min_score: Optional[float] = None,
-    ) -> List[Tuple[DocumentChunk, float]]:
+        filters: dict[str, Any] | None = None,
+        min_score: float | None = None,
+    ) -> list[tuple[DocumentChunk, float]]:
         """
         Perform vector similarity search with metadata filtering and minimum score thresholding.
         """
@@ -165,7 +166,7 @@ class NumpyFlatVectorStore(BaseVectorStore):
         candidate_scores.sort(key=lambda x: x[1], reverse=True)
 
         # Apply similarity threshold
-        results: List[Tuple[DocumentChunk, float]] = []
+        results: list[tuple[DocumentChunk, float]] = []
         for idx, score in candidate_scores:
             if min_score is not None and score < min_score:
                 continue
@@ -212,7 +213,7 @@ class NumpyFlatVectorStore(BaseVectorStore):
 
         try:
             self.embeddings = np.load(self.vectors_path)
-            with open(self.chunks_path, "r", encoding="utf-8") as f:
+            with open(self.chunks_path, encoding="utf-8") as f:
                 chunks_data = json.load(f)
             self.chunks = [DocumentChunk.from_dict(d) for d in chunks_data]
             logger.info(f"Loaded {len(self.chunks)} chunks and vectors from '{self.persist_dir}'")

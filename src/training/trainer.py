@@ -1,10 +1,11 @@
-﻿"""
+"""
 Enhanced PyTorch Trainer supporting Class-Weighted Loss, Discriminative LR, and Experiment Tracking.
 """
 
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any
+
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -23,8 +24,8 @@ class Trainer:
         train_loader: DataLoader,
         val_loader: DataLoader,
         config: ExperimentConfig,
-        class_weights: Optional[torch.Tensor] = None,
-        logger: Optional[Any] = None,
+        class_weights: torch.Tensor | None = None,
+        logger: Any | None = None,
     ):
         self.config = config
         self.logger = logger or setup_logger("Trainer", level=config.system.log_level)
@@ -51,9 +52,7 @@ class Trainer:
         # 4. Learning Rate Scheduler
         sched_name = config.training.scheduler.lower()
         if sched_name == "cosine":
-            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-                self.optimizer, T_max=config.training.epochs
-            )
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=config.training.epochs)
         elif sched_name == "step":
             self.scheduler = torch.optim.lr_scheduler.StepLR(
                 self.optimizer, step_size=max(1, config.training.epochs // 3), gamma=0.5
@@ -100,13 +99,11 @@ class Trainer:
         elif opt_name == "adam":
             return torch.optim.Adam(param_groups, weight_decay=self.config.training.weight_decay)
         elif opt_name == "sgd":
-            return torch.optim.SGD(
-                param_groups, weight_decay=self.config.training.weight_decay, momentum=0.9
-            )
+            return torch.optim.SGD(param_groups, weight_decay=self.config.training.weight_decay, momentum=0.9)
         else:
             raise ValueError(f"Unsupported optimizer: {opt_name}")
 
-    def train_epoch(self, epoch: int) -> Dict[str, float]:
+    def train_epoch(self, epoch: int) -> dict[str, float]:
         """Execute one training epoch."""
         self.model.train()
         running_loss = 0.0
@@ -126,9 +123,7 @@ class Trainer:
                 self.scaler.scale(loss).backward()
                 if self.config.training.gradient_clip_val:
                     self.scaler.unscale_(self.optimizer)
-                    nn.utils.clip_grad_norm_(
-                        self.model.parameters(), self.config.training.gradient_clip_val
-                    )
+                    nn.utils.clip_grad_norm_(self.model.parameters(), self.config.training.gradient_clip_val)
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
             else:
@@ -136,9 +131,7 @@ class Trainer:
                 loss = self.criterion(outputs, targets)
                 loss.backward()
                 if self.config.training.gradient_clip_val:
-                    nn.utils.clip_grad_norm_(
-                        self.model.parameters(), self.config.training.gradient_clip_val
-                    )
+                    nn.utils.clip_grad_norm_(self.model.parameters(), self.config.training.gradient_clip_val)
                 self.optimizer.step()
 
             running_loss += loss.item() * images.size(0)
@@ -151,7 +144,7 @@ class Trainer:
         return {"loss": epoch_loss, "accuracy": epoch_acc}
 
     @torch.no_grad()
-    def validate(self) -> Dict[str, float]:
+    def validate(self) -> dict[str, float]:
         """Execute validation epoch."""
         self.model.eval()
         running_loss = 0.0
@@ -193,7 +186,7 @@ class Trainer:
         self.logger.info("Saved checkpoint: %s (Val Acc: %.4f)", ckpt_path, val_acc)
         return ckpt_path
 
-    def train(self, resume_path: Optional[Path] = None) -> Dict[str, Any]:
+    def train(self, resume_path: Path | None = None) -> dict[str, Any]:
         """Run complete training cycle."""
         start_epoch = 1
         epochs = self.config.training.epochs
@@ -226,12 +219,8 @@ class Trainer:
             if val_metrics["accuracy"] > self.best_val_acc:
                 self.best_val_acc = val_metrics["accuracy"]
                 self.best_epoch = epoch
-                self.save_checkpoint(
-                    f"{self.config.experiment_name}_best.pt", epoch, self.best_val_acc
-                )
+                self.save_checkpoint(f"{self.config.experiment_name}_best.pt", epoch, self.best_val_acc)
 
-            self.save_checkpoint(
-                f"{self.config.experiment_name}_latest.pt", epoch, val_metrics["accuracy"]
-            )
+            self.save_checkpoint(f"{self.config.experiment_name}_latest.pt", epoch, val_metrics["accuracy"])
 
         return history

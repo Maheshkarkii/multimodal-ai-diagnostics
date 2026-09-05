@@ -1,17 +1,17 @@
-﻿"""
+"""
 Multimodal Diagnosis Route Handlers.
 Supports multipart form uploads with optional images, audio files, JSON sensor data, and notes.
 """
 
 import json
 import logging
-from pathlib import Path
-from typing import Optional
 import uuid
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Request, UploadFile, status
 
-from src.api.schemas.diagnosis import DiagnosisResponse, EquipmentMetadataInput, SensorTelemetryInput
 from src.api.dependencies.services import get_diagnostic_orchestrator, get_file_service
+from src.api.schemas.diagnosis import DiagnosisResponse, EquipmentMetadataInput, SensorTelemetryInput
 from src.api.services.file_service import FileValidationService
 from src.api.services.orchestrator import DiagnosticOrchestrator
 
@@ -32,12 +32,12 @@ router = APIRouter(prefix="/api/v1", tags=["Diagnostic Reasoning & Troubleshooti
 )
 async def submit_diagnostic_case(
     request: Request,
-    technician_description: Optional[str] = Form(None, description="Field technician symptom observation"),
-    sensor_json: Optional[str] = Form(None, description="JSON string encoded SensorTelemetryInput"),
-    equipment_json: Optional[str] = Form(None, description="JSON string encoded EquipmentMetadataInput"),
-    image: Optional[UploadFile] = File(None, description="Optional equipment image file (JPEG, PNG, WebP)"),
-    audio: Optional[UploadFile] = File(None, description="Optional acoustic recording file (WAV, MP3)"),
-    x_request_id: Optional[str] = Header(None, alias="X-Request-ID"),
+    technician_description: str | None = Form(None, description="Field technician symptom observation"),
+    sensor_json: str | None = Form(None, description="JSON string encoded SensorTelemetryInput"),
+    equipment_json: str | None = Form(None, description="JSON string encoded EquipmentMetadataInput"),
+    image: UploadFile | None = File(None, description="Optional equipment image file (JPEG, PNG, WebP)"),
+    audio: UploadFile | None = File(None, description="Optional acoustic recording file (WAV, MP3)"),
+    x_request_id: str | None = Header(None, alias="X-Request-ID"),
     orchestrator: DiagnosticOrchestrator = Depends(get_diagnostic_orchestrator),
     file_service: FileValidationService = Depends(get_file_service),
 ):
@@ -52,7 +52,7 @@ async def submit_diagnostic_case(
         )
 
     # 2. Parse JSON inputs safely
-    sensor_input: Optional[SensorTelemetryInput] = None
+    sensor_input: SensorTelemetryInput | None = None
     if sensor_json:
         try:
             s_dict = json.loads(sensor_json)
@@ -61,9 +61,9 @@ async def submit_diagnostic_case(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Malformed sensor_json payload: {str(e)}",
-            )
+            ) from e
 
-    equip_input: Optional[EquipmentMetadataInput] = None
+    equip_input: EquipmentMetadataInput | None = None
     if equipment_json:
         try:
             e_dict = json.loads(equipment_json)
@@ -72,10 +72,10 @@ async def submit_diagnostic_case(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Malformed equipment_json payload: {str(e)}",
-            )
+            ) from e
 
-    saved_img_path: Optional[Path] = None
-    saved_aud_path: Optional[Path] = None
+    saved_img_path: Path | None = None
+    saved_aud_path: Path | None = None
 
     try:
         # 3. Securely validate & stage files

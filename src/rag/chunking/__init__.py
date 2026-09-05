@@ -1,4 +1,4 @@
-﻿"""
+"""
 Chunking module exports.
 """
 

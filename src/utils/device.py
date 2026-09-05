@@ -1,9 +1,10 @@
-﻿"""
+"""
 Device selection and seed management.
 """
 
 import logging
 import random
+
 import numpy as np
 import torch
 

@@ -1,10 +1,10 @@
-﻿"""
+"""
 Retrieval module exports.
 """
 
 from src.rag.retrieval.retriever import (
-    TechnicalRetriever,
     KnowledgeBaseService,
+    TechnicalRetriever,
     preprocess_query,
     tokenize_text,
 )

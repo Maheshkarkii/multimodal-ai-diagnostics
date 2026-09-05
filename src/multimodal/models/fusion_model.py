@@ -1,8 +1,7 @@
-﻿"""
+"""
 Multimodal Fusion Network: Modality Projections, Missing-Modality Masking, and Unified Machine Representation.
 """
 
-from typing import Dict, Tuple, List, Optional, Union
 import torch
 import torch.nn as nn
 
@@ -44,7 +43,7 @@ class MultimodalFusionModel(nn.Module):
         sensor_dim: int = 256,
         text_dim: int = 256,
         shared_dim: int = 256,
-        fusion_hidden_dims: Optional[List[int]] = None,
+        fusion_hidden_dims: list[int] | None = None,
         unified_embedding_dim: int = 256,
         dropout: float = 0.25,
         modality_dropout_prob: float = 0.20,
@@ -62,10 +61,7 @@ class MultimodalFusionModel(nn.Module):
         self.proj_text = ModalityProjection(text_dim, shared_dim, dropout)
 
         # 2. Learnable Missing-Modality Default Tokens
-        self.missing_tokens = nn.ParameterDict({
-            m: nn.Parameter(torch.zeros(1, shared_dim))
-            for m in self.modalities
-        })
+        self.missing_tokens = nn.ParameterDict({m: nn.Parameter(torch.zeros(1, shared_dim)) for m in self.modalities})
 
         # 3. Fusion Backbone
         fusion_hidden_dims = fusion_hidden_dims or [512, 256]
@@ -74,20 +70,24 @@ class MultimodalFusionModel(nn.Module):
         fusion_layers = []
         prev_dim = in_dim
         for h_dim in fusion_hidden_dims:
-            fusion_layers.extend([
-                nn.Linear(prev_dim, h_dim),
-                nn.BatchNorm1d(h_dim),
-                nn.ReLU(inplace=True),
-                nn.Dropout(p=dropout),
-            ])
+            fusion_layers.extend(
+                [
+                    nn.Linear(prev_dim, h_dim),
+                    nn.BatchNorm1d(h_dim),
+                    nn.ReLU(inplace=True),
+                    nn.Dropout(p=dropout),
+                ]
+            )
             prev_dim = h_dim
 
         # Unified embedding projection (e.g. 256)
-        fusion_layers.extend([
-            nn.Linear(prev_dim, unified_embedding_dim),
-            nn.BatchNorm1d(unified_embedding_dim),
-            nn.ReLU(inplace=True),
-        ])
+        fusion_layers.extend(
+            [
+                nn.Linear(prev_dim, unified_embedding_dim),
+                nn.BatchNorm1d(unified_embedding_dim),
+                nn.ReLU(inplace=True),
+            ]
+        )
         self.fusion_trunk = nn.Sequential(*fusion_layers)
 
         # 4. Final Classification Head
@@ -96,9 +96,7 @@ class MultimodalFusionModel(nn.Module):
             nn.Linear(unified_embedding_dim, num_classes),
         )
 
-    def _apply_modality_dropout(
-        self, masks: Dict[str, torch.Tensor]
-    ) -> Dict[str, torch.Tensor]:
+    def _apply_modality_dropout(self, masks: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
         """Apply random modality dropout during training to prevent single-modality reliance."""
         if not self.training or self.modality_dropout_prob <= 0.0:
             return masks
@@ -121,8 +119,8 @@ class MultimodalFusionModel(nn.Module):
 
     def extract_unified_embedding(
         self,
-        embeddings: Dict[str, torch.Tensor],
-        masks: Optional[Dict[str, torch.Tensor]] = None,
+        embeddings: dict[str, torch.Tensor],
+        masks: dict[str, torch.Tensor] | None = None,
     ) -> torch.Tensor:
         """
         Fuse available modalities and extract unified 256-dim machine representation.
@@ -166,10 +164,10 @@ class MultimodalFusionModel(nn.Module):
 
     def forward(
         self,
-        embeddings: Dict[str, torch.Tensor],
-        masks: Optional[Dict[str, torch.Tensor]] = None,
+        embeddings: dict[str, torch.Tensor],
+        masks: dict[str, torch.Tensor] | None = None,
         return_features: bool = False,
-    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass.
 
@@ -191,7 +189,7 @@ def build_multimodal_model(
     sensor_dim: int = 256,
     text_dim: int = 256,
     shared_dim: int = 256,
-    fusion_hidden_dims: Optional[List[int]] = None,
+    fusion_hidden_dims: list[int] | None = None,
     unified_embedding_dim: int = 256,
     dropout: float = 0.25,
     modality_dropout_prob: float = 0.20,

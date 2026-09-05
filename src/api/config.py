@@ -3,16 +3,18 @@ API Configuration Settings for Phase 9/10 FastAPI Backend.
 Supports YAML loading and environment variable overrides for production deployment.
 """
 
-from dataclasses import dataclass, field, asdict
 import os
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
+
 import yaml
 
 
 @dataclass
 class ServerConfig:
     """FastAPI Server configuration."""
+
     host: str = field(default_factory=lambda: os.getenv("API_HOST", "0.0.0.0"))
     port: int = field(default_factory=lambda: int(os.getenv("API_PORT", "8000")))
     reload: bool = field(default_factory=lambda: os.getenv("API_RELOAD", "false").lower() in ("true", "1", "yes"))
@@ -20,11 +22,15 @@ class ServerConfig:
     api_prefix: str = field(default_factory=lambda: os.getenv("API_PREFIX", "/api/v1"))
     title: str = "AI Field Engineer - Diagnostic & Troubleshooting API"
     version: str = "1.0.0"
-    description: str = "Industrial multimodal diagnostic reasoning, RAG knowledge retrieval, and auditable reporting service."
-    allowed_origins: List[str] = field(
+    description: str = (
+        "Industrial multimodal diagnostic reasoning, RAG knowledge retrieval, and auditable reporting service."
+    )
+    allowed_origins: list[str] = field(
         default_factory=lambda: [
             o.strip()
-            for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000").split(",")
+            for o in os.getenv(
+                "ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000"
+            ).split(",")
             if o.strip()
         ]
     )
@@ -39,21 +45,22 @@ class ServerConfig:
 @dataclass
 class APIConfig:
     """Master API Service Configuration."""
+
     server: ServerConfig = field(default_factory=ServerConfig)
 
     @classmethod
-    def from_yaml(cls, yaml_path: Union[str, Path]) -> "APIConfig":
+    def from_yaml(cls, yaml_path: str | Path) -> "APIConfig":
         yaml_path = Path(yaml_path)
         if not yaml_path.exists():
             return cls()
 
-        with open(yaml_path, "r", encoding="utf-8") as f:
+        with open(yaml_path, encoding="utf-8") as f:
             raw_dict = yaml.safe_load(f) or {}
 
         return cls.from_dict(raw_dict)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "APIConfig":
+    def from_dict(cls, d: dict[str, Any]) -> "APIConfig":
         server_dict = d.get("server", {})
         # Environment variables take precedence if present
         if "API_HOST" in os.environ:
@@ -71,7 +78,7 @@ class APIConfig:
 
         return cls(server=ServerConfig(**server_dict))
 
-    def to_yaml(self, save_path: Union[str, Path]) -> None:
+    def to_yaml(self, save_path: str | Path) -> None:
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
         with open(save_path, "w", encoding="utf-8") as f:

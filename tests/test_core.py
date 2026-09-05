@@ -1,11 +1,13 @@
-﻿"""
+"""
 Unit tests for core configuration, logging, and device resolution.
 """
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
 import torch
-from field_engineer.core.config import ExperimentConfig, SystemConfig, ModelConfig, TrainingConfig, DatasetConfig
+
+from field_engineer.core.config import DatasetConfig, ExperimentConfig, ModelConfig, SystemConfig, TrainingConfig
 from field_engineer.core.device import resolve_device, set_seed
 from field_engineer.core.logging import setup_logger
 

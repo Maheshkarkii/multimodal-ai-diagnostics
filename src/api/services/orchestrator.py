@@ -4,14 +4,17 @@ Orchestrates Input Validation -> Modality Inference -> RAG Retrieval ->
 Diagnostic Reasoning Agent -> Explainability Layer -> Auditable Response.
 """
 
-from datetime import datetime
-import json
 import logging
-from pathlib import Path
-import time
-from typing import Any, Dict, List, Optional
 import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
+from src.agent.core.agent import DiagnosticReasoningAgent
+from src.agent.core.schema import (
+    ModalityObservation,
+    ModalityType,
+)
 from src.api.schemas.diagnosis import (
     ClaimAuditMappingResponse,
     ConfidenceDecompositionResponse,
@@ -22,19 +25,12 @@ from src.api.schemas.diagnosis import (
     RecommendedActionResponse,
     SensorTelemetryInput,
 )
-from src.agent.core.agent import DiagnosticReasoningAgent
-from src.agent.core.schema import (
-    DiagnosticState,
-    ModalityObservation,
-    ModalityType,
-    SensorMeasurement,
-)
 from src.explainability.core.config import ExplainabilityConfig
 from src.explainability.core.service import ExplainabilityService
 from src.rag.config import RAGConfig
 from src.rag.embeddings.model import create_embedding_model
-from src.rag.vectorstore.store import NumpyFlatVectorStore
 from src.rag.retrieval.retriever import TechnicalRetriever
+from src.rag.vectorstore.store import NumpyFlatVectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +43,8 @@ class DiagnosticOrchestrator:
 
     def __init__(
         self,
-        rag_config: Optional[RAGConfig] = None,
-        explainability_config: Optional[ExplainabilityConfig] = None,
+        rag_config: RAGConfig | None = None,
+        explainability_config: ExplainabilityConfig | None = None,
     ):
         self.rag_config = rag_config or RAGConfig()
         self.explainability_config = explainability_config or ExplainabilityConfig()
@@ -68,11 +64,11 @@ class DiagnosticOrchestrator:
     async def execute_diagnosis(
         self,
         request_id: str,
-        technician_description: Optional[str] = None,
-        sensor_data: Optional[SensorTelemetryInput] = None,
-        equipment_meta: Optional[EquipmentMetadataInput] = None,
-        image_path: Optional[Path] = None,
-        audio_path: Optional[Path] = None,
+        technician_description: str | None = None,
+        sensor_data: SensorTelemetryInput | None = None,
+        equipment_meta: EquipmentMetadataInput | None = None,
+        image_path: Path | None = None,
+        audio_path: Path | None = None,
     ) -> DiagnosisResponse:
         """
         Execute end-to-end multimodal diagnostic workflow.
@@ -81,7 +77,7 @@ class DiagnosticOrchestrator:
         eq = equipment_meta or EquipmentMetadataInput()
 
         # 1. Determine active modalities & execute perception pipelines
-        observations: Dict[str, ModalityObservation] = {}
+        observations: dict[str, ModalityObservation] = {}
         available_modalities = []
 
         if technician_description:
@@ -93,9 +89,11 @@ class DiagnosticOrchestrator:
             # In a live multi-worker container, invoke vision_predictor
             observations["vision"] = ModalityObservation(
                 modality=ModalityType.VISION,
-                prediction="bearing_defect_wear" if "bearing" in (technician_description or "").lower() else "normal_state",
+                prediction="bearing_defect_wear"
+                if "bearing" in (technician_description or "").lower()
+                else "normal_state",
                 confidence=0.88,
-                summary=f"Analyzed visual features from '{image_path.name}'."
+                summary=f"Analyzed visual features from '{image_path.name}'.",
             )
 
         # Ingest/Mock Audio inference if audio is uploaded
@@ -103,50 +101,62 @@ class DiagnosticOrchestrator:
             available_modalities.append("audio")
             observations["audio"] = ModalityObservation(
                 modality=ModalityType.AUDIO,
-                prediction="hydraulic_cavitation" if "cavitation" in (technician_description or "").lower() else "bearing_defect_wear",
+                prediction="hydraulic_cavitation"
+                if "cavitation" in (technician_description or "").lower()
+                else "bearing_defect_wear",
                 confidence=0.91,
-                summary=f"Processed acoustic spectrogram harmonics from '{audio_path.name}'."
+                summary=f"Processed acoustic spectrogram harmonics from '{audio_path.name}'.",
             )
 
         # Ingest Physical Sensor Telemetry
-        sensor_readings: List[Dict[str, Any]] = []
+        sensor_readings: list[dict[str, Any]] = []
         if sensor_data:
             available_modalities.append("sensor")
             if sensor_data.vibration is not None:
-                sensor_readings.append({
-                    "parameter": "Vibration_RMS",
-                    "value": sensor_data.vibration,
-                    "unit": sensor_data.vibration_unit,
-                    "warning_threshold": 4.5,
-                    "critical_threshold": 7.1,
-                })
+                sensor_readings.append(
+                    {
+                        "parameter": "Vibration_RMS",
+                        "value": sensor_data.vibration,
+                        "unit": sensor_data.vibration_unit,
+                        "warning_threshold": 4.5,
+                        "critical_threshold": 7.1,
+                    }
+                )
             if sensor_data.temperature is not None:
-                sensor_readings.append({
-                    "parameter": "Bearing_Temp",
-                    "value": sensor_data.temperature,
-                    "unit": sensor_data.temperature_unit,
-                    "warning_threshold": 75.0,
-                    "critical_threshold": 90.0,
-                })
+                sensor_readings.append(
+                    {
+                        "parameter": "Bearing_Temp",
+                        "value": sensor_data.temperature,
+                        "unit": sensor_data.temperature_unit,
+                        "warning_threshold": 75.0,
+                        "critical_threshold": 90.0,
+                    }
+                )
             if sensor_data.rpm is not None:
-                sensor_readings.append({
-                    "parameter": "Shaft_RPM",
-                    "value": sensor_data.rpm,
-                    "unit": "RPM",
-                })
+                sensor_readings.append(
+                    {
+                        "parameter": "Shaft_RPM",
+                        "value": sensor_data.rpm,
+                        "unit": "RPM",
+                    }
+                )
             if sensor_data.current is not None:
-                sensor_readings.append({
-                    "parameter": "Motor_Current",
-                    "value": sensor_data.current,
-                    "unit": sensor_data.current_unit,
-                })
+                sensor_readings.append(
+                    {
+                        "parameter": "Motor_Current",
+                        "value": sensor_data.current,
+                        "unit": sensor_data.current_unit,
+                    }
+                )
             if sensor_data.pressure is not None:
-                sensor_readings.append({
-                    "parameter": "Pressure",
-                    "value": sensor_data.pressure,
-                    "unit": sensor_data.pressure_unit,
-                    "warning_threshold": 0.8,
-                })
+                sensor_readings.append(
+                    {
+                        "parameter": "Pressure",
+                        "value": sensor_data.pressure,
+                        "unit": sensor_data.pressure_unit,
+                        "warning_threshold": 0.8,
+                    }
+                )
 
         # 2. Invoke Phase 7 Diagnostic Reasoning Agent
         logger.info(f"[{request_id}] Executing Phase 7 Diagnostic Reasoning for case {case_id}...")
@@ -167,7 +177,7 @@ class DiagnosticOrchestrator:
                 "technician_notes": technician_description,
                 "sensor_data": sensor_data.model_dump() if sensor_data else None,
                 "equipment": eq.model_dump(),
-            }
+            },
         )
 
         # 4. Map to Strict Pydantic API Response

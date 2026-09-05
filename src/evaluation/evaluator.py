@@ -1,21 +1,21 @@
-﻿"""
+"""
 Model Evaluation and Diagnostic Performance Reporting Module.
 """
 
-from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 from sklearn.metrics import (
     accuracy_score,
+    classification_report,
+    confusion_matrix,
+    f1_score,
     precision_score,
     recall_score,
-    f1_score,
-    confusion_matrix,
-    classification_report,
 )
+from torch.utils.data import DataLoader
 
 from src.utils.device import resolve_device
 from src.utils.logging import setup_logger
@@ -28,8 +28,8 @@ class Evaluator:
         self,
         model: nn.Module,
         device: str = "auto",
-        class_names: Optional[List[str]] = None,
-        logger: Optional[Any] = None,
+        class_names: list[str] | None = None,
+        logger: Any | None = None,
     ):
         self.device = resolve_device(device)
         self.model = model.to(self.device)
@@ -37,7 +37,7 @@ class Evaluator:
         self.logger = logger or setup_logger("Evaluator")
 
     @torch.no_grad()
-    def evaluate(self, test_loader: DataLoader) -> Dict[str, Any]:
+    def evaluate(self, test_loader: DataLoader) -> dict[str, Any]:
         """
         Evaluate model on test DataLoader and compute comprehensive multiclass metrics.
 
@@ -72,9 +72,7 @@ class Evaluator:
         f1_macro = float(f1_score(y_true, y_pred, average="macro", zero_division=0))
         f1_weighted = float(f1_score(y_true, y_pred, average="weighted", zero_division=0))
         cm = confusion_matrix(y_true, y_pred)
-        report_str = classification_report(
-            y_true, y_pred, target_names=self.class_names, zero_division=0
-        )
+        report_str = classification_report(y_true, y_pred, target_names=self.class_names, zero_division=0)
 
         results = {
             "accuracy": acc,

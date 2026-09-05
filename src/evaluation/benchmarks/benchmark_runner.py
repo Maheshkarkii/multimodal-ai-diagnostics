@@ -4,16 +4,14 @@ Executes deterministic benchmark evaluations across Vision, Audio, Sensor, Multi
 RAG Retrieval, Confidence Calibration, and Latency Profiling.
 """
 
-from datetime import datetime
-import time
-from typing import Any, Dict, List, Optional
 import uuid
+from datetime import datetime
+from typing import Any
 
 from src.evaluation.calibration.calibration import compute_calibration_metrics
 from src.evaluation.evaluators.anomaly import evaluate_anomaly_detector
 from src.evaluation.evaluators.rag_evidence import evaluate_rag_and_citations
 from src.evaluation.metrics.classification import calculate_classification_metrics
-from src.evaluation.regression.gate import check_regression_against_baseline
 from src.evaluation.robustness.ablation import run_modality_ablation_study
 from src.evaluation.schemas import (
     EvaluationCase,
@@ -30,7 +28,7 @@ class BenchmarkRunner:
         self.dataset_version = dataset_version
         self.git_sha = git_sha
 
-    def create_deterministic_benchmark_cases(self) -> List[EvaluationCase]:
+    def create_deterministic_benchmark_cases(self) -> list[EvaluationCase]:
         """Constructs synthetic, machine-grouped evaluation cases across all fault modes."""
         cases = [
             # Machine 1 (Normal Operations)
@@ -44,7 +42,9 @@ class BenchmarkRunner:
                 is_anomaly=False,
                 sensor_data={"temperature": 45.0, "vibration": 1.2, "rpm": 1490.0},
                 technician_description="Motor running smoothly with nominal current draw.",
-                available_modalities=ModalityAvailability(has_image=True, has_audio=True, has_sensor=True, has_text=True),
+                available_modalities=ModalityAvailability(
+                    has_image=True, has_audio=True, has_sensor=True, has_text=True
+                ),
             ),
             # Machine 2 (Bearing Degradation)
             EvaluationCase(
@@ -57,7 +57,9 @@ class BenchmarkRunner:
                 is_anomaly=True,
                 sensor_data={"temperature": 88.5, "vibration": 7.4, "rpm": 1485.0},
                 technician_description="High-frequency squeal from drive-end bearing and elevated casing temperature.",
-                available_modalities=ModalityAvailability(has_image=True, has_audio=True, has_sensor=True, has_text=True),
+                available_modalities=ModalityAvailability(
+                    has_image=True, has_audio=True, has_sensor=True, has_text=True
+                ),
             ),
             # Machine 3 (Shaft Misalignment)
             EvaluationCase(
@@ -70,7 +72,9 @@ class BenchmarkRunner:
                 is_anomaly=True,
                 sensor_data={"temperature": 68.0, "vibration": 5.1, "rpm": 1475.0},
                 technician_description="Radial 2X vibration peak noted during coupling inspection.",
-                available_modalities=ModalityAvailability(has_image=True, has_audio=True, has_sensor=True, has_text=True),
+                available_modalities=ModalityAvailability(
+                    has_image=True, has_audio=True, has_sensor=True, has_text=True
+                ),
             ),
             # Machine 4 (Rotor Imbalance)
             EvaluationCase(
@@ -83,7 +87,9 @@ class BenchmarkRunner:
                 is_anomaly=True,
                 sensor_data={"temperature": 55.0, "vibration": 4.8, "rpm": 1500.0},
                 technician_description="1X rotational speed vibration dominant.",
-                available_modalities=ModalityAvailability(has_image=True, has_audio=True, has_sensor=True, has_text=True),
+                available_modalities=ModalityAvailability(
+                    has_image=True, has_audio=True, has_sensor=True, has_text=True
+                ),
             ),
         ]
         return cases
@@ -92,7 +98,7 @@ class BenchmarkRunner:
         """Executes complete evaluation suite across all 11 evaluation dimensions."""
         eval_id = f"eval_{uuid.uuid4().hex[:8]}"
         cases = self.create_deterministic_benchmark_cases()
-        
+
         # 1. Classification Evaluations
         y_true = [c.ground_truth_fault for c in cases if c.ground_truth_fault]
         y_pred = list(y_true)  # Deterministic test passes
@@ -112,8 +118,18 @@ class BenchmarkRunner:
             {"target_doc_id": "SKF-BEARING-01", "retrieved_doc_ids": ["SKF-BEARING-01", "ISO-10816-3"]},
         ]
         generated_claims = [
-            {"claim": "Bearing requires immediate lubrication", "is_supported": True, "citation": "SKF-BEARING-01", "has_valid_citation": True},
-            {"claim": "Vibration of 7.4 mm/s exceeds ISO Zone C limit", "is_supported": True, "citation": "ISO-10816-3", "has_valid_citation": True},
+            {
+                "claim": "Bearing requires immediate lubrication",
+                "is_supported": True,
+                "citation": "SKF-BEARING-01",
+                "has_valid_citation": True,
+            },
+            {
+                "claim": "Vibration of 7.4 mm/s exceeds ISO Zone C limit",
+                "is_supported": True,
+                "citation": "ISO-10816-3",
+                "has_valid_citation": True,
+            },
         ]
         rag_metrics = evaluate_rag_and_citations(rag_queries, generated_claims)
 
@@ -124,7 +140,7 @@ class BenchmarkRunner:
         calibration_metrics = compute_calibration_metrics(y_true_idx, confidences, y_pred_idx, num_bins=5)
 
         # 5. Modality Ablation & Robustness
-        def dummy_predict_fn(case_dict: Dict[str, Any], mask: Dict[str, bool]) -> str:
+        def dummy_predict_fn(case_dict: dict[str, Any], mask: dict[str, bool]) -> str:
             return case_dict.get("ground_truth_fault", "")
 
         case_dicts = [c.model_dump() for c in cases]

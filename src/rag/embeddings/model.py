@@ -1,13 +1,13 @@
-﻿"""
+"""
 Embedding Models and Representation Layer for Technical RAG.
 Provides unified BaseEmbeddingModel interface, SentenceTransformers integration,
 and robust deterministic dense hashing embeddings for zero-network/standalone environments.
 """
 
-from abc import ABC, abstractmethod
 import hashlib
 import logging
-from typing import List, Optional, Union
+from abc import ABC, abstractmethod
+
 import numpy as np
 
 from src.rag.config import EmbeddingConfig
@@ -24,7 +24,7 @@ class BaseEmbeddingModel(ABC):
         pass
 
     @abstractmethod
-    def embed_documents(self, texts: List[str]) -> np.ndarray:
+    def embed_documents(self, texts: list[str]) -> np.ndarray:
         """Generate normalized 2D embedding matrix (N, D) for a batch of strings."""
         pass
 
@@ -53,7 +53,7 @@ class DeterministicDenseEmbeddingModel(BaseEmbeddingModel):
     def embed_text(self, text: str) -> np.ndarray:
         return self.embed_documents([text])[0]
 
-    def embed_documents(self, texts: List[str]) -> np.ndarray:
+    def embed_documents(self, texts: list[str]) -> np.ndarray:
         vectors = np.zeros((len(texts), self._dim), dtype=np.float32)
 
         for i, text in enumerate(texts):
@@ -71,7 +71,7 @@ class DeterministicDenseEmbeddingModel(BaseEmbeddingModel):
                 # Character 3-gram features
                 if len(w) >= 3:
                     for j in range(len(w) - 2):
-                        tri = w[j:j+3]
+                        tri = w[j : j + 3]
                         h_tri = int(hashlib.sha1(tri.encode("utf-8")).hexdigest(), 16) % self._dim
                         vectors[i, h_tri] += 0.3
 
@@ -90,7 +90,7 @@ class SentenceTransformerEmbeddingModel(BaseEmbeddingModel):
     Falls back gracefully to DeterministicDenseEmbeddingModel if model fails or network is offline.
     """
 
-    def __init__(self, config: Optional[EmbeddingConfig] = None):
+    def __init__(self, config: EmbeddingConfig | None = None):
         self.config = config or EmbeddingConfig()
         self.model = None
         self._dim = self.config.embedding_dim
@@ -101,6 +101,7 @@ class SentenceTransformerEmbeddingModel(BaseEmbeddingModel):
 
         try:
             from sentence_transformers import SentenceTransformer
+
             self.model = SentenceTransformer(
                 self.config.model_name_or_path,
                 device=self.config.device,
@@ -123,7 +124,7 @@ class SentenceTransformerEmbeddingModel(BaseEmbeddingModel):
     def embed_text(self, text: str) -> np.ndarray:
         return self.embed_documents([text])[0]
 
-    def embed_documents(self, texts: List[str]) -> np.ndarray:
+    def embed_documents(self, texts: list[str]) -> np.ndarray:
         if self.model is not None:
             try:
                 embeddings = self.model.encode(

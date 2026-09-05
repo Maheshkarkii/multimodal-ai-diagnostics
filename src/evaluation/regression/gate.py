@@ -3,9 +3,9 @@ Deterministic CI/CD Regression Gate Engine.
 Compares new candidate evaluation results against golden baseline metrics.
 """
 
-from typing import Any, Dict, Tuple
-from src.evaluation.schemas import EvaluationSummary
+from typing import Any
 
+from src.evaluation.schemas import EvaluationSummary
 
 DEFAULT_REGRESSION_THRESHOLDS = {
     "max_accuracy_drop": 0.03,
@@ -18,13 +18,13 @@ DEFAULT_REGRESSION_THRESHOLDS = {
 def check_regression_against_baseline(
     candidate: EvaluationSummary,
     baseline: EvaluationSummary,
-    thresholds: Dict[str, float] = None,
-) -> Tuple[bool, Dict[str, Any]]:
+    thresholds: dict[str, float] = None,
+) -> tuple[bool, dict[str, Any]]:
     """
     Evaluates whether candidate model passes non-regression criteria.
     """
     t = thresholds or DEFAULT_REGRESSION_THRESHOLDS
-    details: Dict[str, Any] = {}
+    details: dict[str, Any] = {}
     passed = True
 
     # 1. Vision & Multimodal F1 Checks

@@ -1,31 +1,28 @@
-﻿"""
+"""
 Main FastAPI Application Entrypoint.
 Initializes lifespan, routers, CORS middleware, global exception handlers, and services.
 """
 
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
-import logging
-from typing import Any, Dict
+
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 
 from src.api.config import APIConfig
 from src.api.dependencies.services import init_app_services
 from src.api.middleware.logging import RequestLoggingMiddleware
-from src.api.routes.health import router as health_router
 from src.api.routes.diagnosis import router as diagnosis_router
+from src.api.routes.health import router as health_router
 from src.api.routes.knowledge import router as knowledge_router
 from src.api.schemas.diagnosis import ErrorResponse
 from src.api.services.file_service import FileValidationService
 from src.api.services.orchestrator import DiagnosticOrchestrator
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s - %(message)s")
 logger = logging.getLogger("api.main")
 
 
@@ -51,7 +48,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down AI Field Engineer Backend. Releasing resources...")
 
 
-def create_app(config: APIConfig = None) -> FastAPI:
+def create_app(config: APIConfig | None = None) -> FastAPI:
     """Factory function for instantiating the FastAPI application."""
     cfg = config or APIConfig()
 

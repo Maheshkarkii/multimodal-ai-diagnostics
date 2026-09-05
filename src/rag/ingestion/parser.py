@@ -1,4 +1,4 @@
-﻿"""
+"""
 Document Ingestion and Parsing Pipeline.
 Supports PDF, TXT, Markdown, and DOCX files.
 Preserves page numbers, computes cryptographic content hashes, and flags scanned/empty pages.
@@ -7,7 +7,6 @@ Preserves page numbers, computes cryptographic content hashes, and flags scanned
 import hashlib
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
 
 from src.rag.config import DocumentIngestionConfig
 from src.rag.schema import DocumentMetadata, RawDocumentPage
@@ -15,7 +14,7 @@ from src.rag.schema import DocumentMetadata, RawDocumentPage
 logger = logging.getLogger(__name__)
 
 
-def compute_file_hash(file_path: Union[str, Path]) -> str:
+def compute_file_hash(file_path: str | Path) -> str:
     """Compute SHA-256 hash of a file for incremental indexing detection."""
     sha256 = hashlib.sha256()
     with open(file_path, "rb") as f:
@@ -27,14 +26,12 @@ def compute_file_hash(file_path: Union[str, Path]) -> str:
 class DocumentParser:
     """Base class and unified dispatcher for extracting structured text from technical documents."""
 
-    def __init__(self, config: Optional[DocumentIngestionConfig] = None):
+    def __init__(self, config: DocumentIngestionConfig | None = None):
         self.config = config or DocumentIngestionConfig()
 
     def parse_document(
-        self,
-        file_path: Union[str, Path],
-        extra_metadata: Optional[Dict] = None
-    ) -> Tuple[DocumentMetadata, List[RawDocumentPage]]:
+        self, file_path: str | Path, extra_metadata: dict | None = None
+    ) -> tuple[DocumentMetadata, list[RawDocumentPage]]:
         """Parse any supported technical document into DocumentMetadata and a list of RawDocumentPage objects."""
         path = Path(file_path)
         if not path.exists():
@@ -81,12 +78,13 @@ class DocumentParser:
 
         return metadata, pages
 
-    def _parse_pdf(self, path: Path) -> List[RawDocumentPage]:
+    def _parse_pdf(self, path: Path) -> list[RawDocumentPage]:
         """Parse PDF document with page boundary preservation and scanned-text quality detection."""
-        pages: List[RawDocumentPage] = []
+        pages: list[RawDocumentPage] = []
 
         try:
             from pypdf import PdfReader
+
             reader = PdfReader(str(path))
 
             for page_idx, page in enumerate(reader.pages, start=1):
@@ -123,16 +121,16 @@ class DocumentParser:
 
         return pages
 
-    def _parse_text_or_markdown(self, path: Path) -> List[RawDocumentPage]:
+    def _parse_text_or_markdown(self, path: Path) -> list[RawDocumentPage]:
         """Parse TXT or Markdown files. Simulates pages using page markers or logical sections."""
-        with open(path, "r", encoding="utf-8", errors="replace") as f:
+        with open(path, encoding="utf-8", errors="replace") as f:
             content = f.read()
 
         cleaned_content = self._clean_text(content)
 
         # Look for explicit page breaks like "--- PAGE 2 ---" or Markdown horizontal rules with page info
         raw_sections = cleaned_content.split("\n--- PAGE ")
-        pages: List[RawDocumentPage] = []
+        pages: list[RawDocumentPage] = []
 
         if len(raw_sections) > 1:
             # First segment before any explicit page marker
@@ -170,10 +168,11 @@ class DocumentParser:
 
         return pages
 
-    def _parse_docx(self, path: Path) -> List[RawDocumentPage]:
+    def _parse_docx(self, path: Path) -> list[RawDocumentPage]:
         """Parse Microsoft Word DOCX files if python-docx is present, otherwise fallback gracefully."""
         try:
             import docx
+
             doc = docx.Document(str(path))
             full_text = []
             for para in doc.paragraphs:
@@ -191,7 +190,7 @@ class DocumentParser:
             ]
         except ImportError:
             logger.warning("python-docx is not installed. Skipping DOCX parsing or treat as unsupported.")
-            raise NotImplementedError("python-docx package required for parsing .docx files.")
+            raise NotImplementedError("python-docx package required for parsing .docx files.") from None
 
     def _clean_text(self, text: str) -> str:
         """Clean extracted document text, normalize whitespace, and remove null bytes."""
@@ -217,7 +216,7 @@ class DocumentParser:
 
         return "\n".join(cleaned_lines).strip()
 
-    def _detect_section_title(self, text: str) -> Optional[str]:
+    def _detect_section_title(self, text: str) -> str | None:
         """Heuristic to detect section headings (e.g., '1.0 Introduction', 'SECTION 3 - BEARING INSPECTION', '## Vibration Limits')."""
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         for line in lines[:5]:  # Look in first few lines

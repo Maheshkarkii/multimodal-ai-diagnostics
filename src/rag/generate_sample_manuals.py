@@ -1,20 +1,20 @@
-﻿"""
+"""
 Generate realistic technical engineering manuals and SOPs in PDF and Markdown formats.
 Creates standard reference documents for pump motors, gearboxes, bearings, and hydraulic systems.
 """
 
 from pathlib import Path
+
 import pypdf
-from pypdf import PageObject
 
 
 def generate_pdf_manual(pdf_path: Path, title: str, pages_content: list) -> None:
     """Generate a clean searchable text PDF manual using pypdf writer."""
     writer = pypdf.PdfWriter()
 
-    for page_num, text_content in enumerate(pages_content, start=1):
+    for _page_num, _text_content in enumerate(pages_content, start=1):
         # Create blank canvas page in points (letter size: 612 x 792)
-        page = writer.add_blank_page(width=612, height=792)
+        writer.add_blank_page(width=612, height=792)
         # Note: Since pypdf is primarily a reader/manipulator without built-in text rasterizer canvas,
         # we attach extracted text streams / metadata or create pure formatted documents.
         # Alternatively, we create standard text/markdown files and generate PDFs with proper streams.
@@ -28,7 +28,6 @@ def create_raw_pdf_with_text(pdf_path: Path, title: str, pages: list) -> None:
     Generate valid searchable multi-page PDF files using basic PDF 1.4 stream syntax
     without external rendering dependencies.
     """
-    pdf_objects = []
     page_obj_ids = []
 
     # Object 1: Catalog
@@ -44,7 +43,7 @@ def create_raw_pdf_with_text(pdf_path: Path, title: str, pages: list) -> None:
 
     current_obj_id = 5
 
-    for page_idx, (page_title, text_body) in enumerate(pages, start=1):
+    for _page_idx, (page_title, text_body) in enumerate(pages, start=1):
         # Format text into PDF content stream
         stream_lines = [
             "BT",
@@ -124,7 +123,7 @@ def generate_all_sample_manuals(output_dir: Path) -> None:
             "Zone A (Normal): RMS vibration velocity below 2.3 mm/s (0.09 in/s). Smooth operation.\n"
             "Zone B (Acceptable): RMS velocity between 2.3 mm/s and 4.5 mm/s. Continuous operation allowed.\n"
             "Zone C (Warning): RMS velocity between 4.5 mm/s and 7.1 mm/s. Immediate maintenance required.\n"
-            "Zone D (Critical Danger): RMS velocity exceeding 7.1 mm/s. Immediate emergency shutdown."
+            "Zone D (Critical Danger): RMS velocity exceeding 7.1 mm/s. Immediate emergency shutdown.",
         ),
         (
             "SECTION 2: BEARING INSPECTION & LUBRICATION PROCEDURES",
@@ -137,7 +136,7 @@ def generate_all_sample_manuals(output_dir: Path) -> None:
             "Step 2: Measure overall RMS vibration velocity and acceleration enveloping peak-to-peak.\n"
             "Step 3: Measure thermal infrared gradient across drive-end (DE) and non-drive-end (NDE) bearings.\n"
             "Step 4: Inspect grease sample for metallic particle discoloration or oxidation degradation.\n"
-            "Step 5: Check shaft axial and radial play with dial indicator (< 0.05 mm allowable)."
+            "Step 5: Check shaft axial and radial play with dial indicator (< 0.05 mm allowable).",
         ),
         (
             "SECTION 3: ROTOR UNBALANCE & SHAFT MISALIGNMENT",
@@ -147,10 +146,12 @@ def generate_all_sample_manuals(output_dir: Path) -> None:
             "3.2 Angular and Parallel Misalignment\n"
             "Shaft misalignment typically exhibits strong 2X and 3X shaft speed harmonic vibration peaks\n"
             "accompanied by high axial vibration amplitudes. Check flexible coupling elastomeric inserts\n"
-            "and verify laser alignment tolerances within 0.05 mm offset and 0.04 mm/100mm angularity."
-        )
+            "and verify laser alignment tolerances within 0.05 mm offset and 0.04 mm/100mm angularity.",
+        ),
     ]
-    create_raw_pdf_with_text(output_dir / "motor_m4500_maintenance_manual.pdf", "MOTOR M-4500 SERVICE MANUAL", motor_pdf_pages)
+    create_raw_pdf_with_text(
+        output_dir / "motor_m4500_maintenance_manual.pdf", "MOTOR M-4500 SERVICE MANUAL", motor_pdf_pages
+    )
 
     # 2. Hydraulic Centrifugal Pump Guide (Markdown)
     pump_guide_content = """# CENTRIFUGAL PUMP CP-800 SERVICE & TROUBLESHOOTING GUIDE
@@ -217,7 +218,7 @@ Thermal warning threshold: 80 degrees Celsius.
     # 4. Scanned / Degraded Document Example (For negative and edge-case testing)
     scanned_pdf_pages = [
         ("SCANNED COVER PAGE", ""),  # Blank text page to test scanned/empty page detection
-        ("PAGE 2", "Sparse warranty notice.")
+        ("PAGE 2", "Sparse warranty notice."),
     ]
     create_raw_pdf_with_text(output_dir / "sparse_unreadable_sample.pdf", "SPARSE SAMPLE", scanned_pdf_pages)
 

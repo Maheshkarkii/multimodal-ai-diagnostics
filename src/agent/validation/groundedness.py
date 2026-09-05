@@ -1,12 +1,11 @@
-﻿"""
+"""
 Groundedness and Citation Verification Engine.
 Flags unsupported technical claims, verifies cited documents/pages, and calculates groundedness scores.
 """
 
-from typing import Dict, List, Set, Tuple
 import logging
 
-from src.agent.core.schema import DiagnosticEvidenceItem, DiagnosticReport
+from src.agent.core.schema import DiagnosticEvidenceItem
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +19,11 @@ class GroundednessChecker:
     def evaluate_groundedness(
         self,
         primary_diagnosis: str,
-        supporting_statements: List[str],
-        recommended_actions: List[Dict],
-        cited_references: List[str],
-        available_evidence: List[DiagnosticEvidenceItem],
-    ) -> Tuple[float, List[str]]:
+        supporting_statements: list[str],
+        recommended_actions: list[dict],
+        cited_references: list[str],
+        available_evidence: list[DiagnosticEvidenceItem],
+    ) -> tuple[float, list[str]]:
         """
         Calculates groundedness score (0.0 to 1.0) and lists unsupported claims.
         """
@@ -36,7 +35,7 @@ class GroundednessChecker:
         corpus_sources = [ev.source.lower() for ev in available_evidence]
         full_corpus = " ".join(corpus_texts + corpus_sources)
 
-        unsupported_claims: List[str] = []
+        unsupported_claims: list[str] = []
         supported_count = 0
         total_claims = len(supporting_statements) + len(recommended_actions)
 
@@ -53,7 +52,9 @@ class GroundednessChecker:
             overlap_ratio = match_count / len(words)
 
             # A statement is grounded if key keywords match the observed/retrieved evidence
-            if overlap_ratio >= 0.15 or any(w in full_corpus for w in ["bearing", "vibration", "cavitation", "unbalance", "noise", "temp"]):
+            if overlap_ratio >= 0.15 or any(
+                w in full_corpus for w in ["bearing", "vibration", "cavitation", "unbalance", "noise", "temp"]
+            ):
                 supported_count += 1
             else:
                 unsupported_claims.append(f"Statement lacks evidence grounding: '{stmt}'")

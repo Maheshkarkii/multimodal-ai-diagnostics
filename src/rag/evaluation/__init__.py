@@ -1,10 +1,10 @@
-﻿"""
+"""
 Evaluation module exports.
 """
 
 from src.rag.evaluation.evaluator import (
-    EvaluationSample,
     EvaluationMetrics,
+    EvaluationSample,
     RAGEvaluator,
 )
 

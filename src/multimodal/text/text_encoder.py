@@ -1,8 +1,7 @@
-﻿"""
+"""
 Lightweight, deterministic Technician Observation Text Encoder.
 """
 
-from typing import List, Union
 import numpy as np
 import torch
 import torch.nn as nn
@@ -39,7 +38,7 @@ class TechnicianTextEncoder(nn.Module):
         return torch.tensor(ids, dtype=torch.long)
 
     @torch.no_grad()
-    def encode(self, texts: Union[str, List[str]]) -> torch.Tensor:
+    def encode(self, texts: str | list[str]) -> torch.Tensor:
         """
         Encode a single string or batch of technician notes into (B, embedding_dim) tensors.
         """

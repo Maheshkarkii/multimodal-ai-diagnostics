@@ -1,11 +1,10 @@
-﻿"""
+"""
 MobileNetV2 Vision Diagnostic Classifier & Feature Embedding Extractor.
 """
 
-from typing import Optional, Tuple, Dict, Any, Union
 import torch
 import torch.nn as nn
-from torchvision.models import mobilenet_v2, MobileNet_V2_Weights
+from torchvision.models import MobileNet_V2_Weights, mobilenet_v2
 
 
 class MobileNetV2Classifier(nn.Module):
@@ -20,7 +19,7 @@ class MobileNetV2Classifier(nn.Module):
         num_classes: int = 5,
         pretrained: bool = True,
         freeze_backbone: bool = True,
-        unfreeze_layers: Optional[int] = None,
+        unfreeze_layers: int | None = None,
         dropout: float = 0.2,
     ):
         super().__init__()
@@ -46,9 +45,7 @@ class MobileNetV2Classifier(nn.Module):
             nn.Linear(self.embedding_dim, num_classes),
         )
 
-    def _configure_parameter_freezing(
-        self, freeze_backbone: bool, unfreeze_layers: Optional[int]
-    ) -> None:
+    def _configure_parameter_freezing(self, freeze_backbone: bool, unfreeze_layers: int | None) -> None:
         """Configure layer freezing for transfer learning vs fine-tuning."""
         if freeze_backbone:
             for param in self.features.parameters():
@@ -92,7 +89,7 @@ class MobileNetV2Classifier(nn.Module):
 
     def forward(
         self, x: torch.Tensor, return_features: bool = False
-    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass.
 
@@ -115,7 +112,7 @@ def build_vision_model(
     num_classes: int = 5,
     pretrained: bool = True,
     freeze_backbone: bool = True,
-    unfreeze_layers: Optional[int] = None,
+    unfreeze_layers: int | None = None,
     dropout: float = 0.2,
 ) -> MobileNetV2Classifier:
     """Factory constructor for industrial vision classifier."""

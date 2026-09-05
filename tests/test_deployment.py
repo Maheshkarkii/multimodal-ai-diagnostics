@@ -4,8 +4,7 @@ Validates environment variable parsing, missing settings, paths, CORS, and versi
 """
 
 import os
-from pathlib import Path
-import pytest
+
 from fastapi.testclient import TestClient
 
 from src.api.config import APIConfig, ServerConfig
@@ -59,11 +58,7 @@ def test_health_endpoint_metadata_and_versioning():
 
 def test_cors_headers_production_restrictions():
     """Verify that CORS correctly reflects configured origins."""
-    custom_config = APIConfig(
-        server=ServerConfig(
-            allowed_origins=["https://secure-dashboard.company.com"]
-        )
-    )
+    custom_config = APIConfig(server=ServerConfig(allowed_origins=["https://secure-dashboard.company.com"]))
     app = create_app(custom_config)
     client = TestClient(app)
 
@@ -76,15 +71,15 @@ def test_cors_headers_production_restrictions():
 def test_temporary_upload_directory_lifecycle(tmp_path):
     """Verify temporary directory creation and file clearance."""
     from src.api.services.file_service import FileValidationService
-    
+
     custom_temp = tmp_path / "test_uploads"
     service = FileValidationService(temp_dir=str(custom_temp))
-    
+
     assert custom_temp.exists()
-    
+
     test_file = custom_temp / "dummy.txt"
     test_file.write_text("sample content")
     assert test_file.exists()
-    
+
     service.cleanup_file(str(test_file))
     assert not test_file.exists()

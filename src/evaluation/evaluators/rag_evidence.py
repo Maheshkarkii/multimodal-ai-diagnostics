@@ -3,14 +3,16 @@ RAG Retrieval & Citation Grounding Evaluator.
 Measures HitRate@k, MRR, nDCG, Citation Accuracy, and Unsupported Claim Rate.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 import numpy as np
+
 from src.evaluation.schemas import RAGRetrievalMetrics
 
 
 def evaluate_rag_and_citations(
-    retrieval_queries: List[Dict[str, Any]],
-    generated_claims: List[Dict[str, Any]],
+    retrieval_queries: list[dict[str, Any]],
+    generated_claims: list[dict[str, Any]],
 ) -> RAGRetrievalMetrics:
     """
     Evaluates retrieval ranking accuracy and diagnostic claim citation validity.
@@ -26,11 +28,11 @@ def evaluate_rag_and_citations(
     for item in retrieval_queries:
         target_doc = item.get("target_doc_id", "")
         retrieved_ids = item.get("retrieved_doc_ids", [])
-        
+
         # Hit @ 1
         h1 = 1.0 if retrieved_ids and retrieved_ids[0] == target_doc else 0.0
         hits_at_1.append(h1)
-        
+
         # Hit @ 5
         h5 = 1.0 if target_doc in retrieved_ids[:5] else 0.0
         hits_at_5.append(h5)
@@ -53,10 +55,10 @@ def evaluate_rag_and_citations(
     for claim in generated_claims:
         is_supported = claim.get("is_supported", False)
         has_valid_citation = claim.get("has_valid_citation", False)
-        
+
         if not is_supported:
             unsupported_claims += 1
-        
+
         if "citation" in claim:
             total_citations += 1
             if has_valid_citation:

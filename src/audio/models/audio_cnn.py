@@ -1,8 +1,7 @@
-﻿"""
+"""
 Acoustic 2D CNN with intermediate feature embedding extraction.
 """
 
-from typing import Tuple, Optional, Union
 import torch
 import torch.nn as nn
 
@@ -86,7 +85,7 @@ class AcousticCNN(nn.Module):
 
     def forward(
         self, x: torch.Tensor, return_features: bool = False
-    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass.
 

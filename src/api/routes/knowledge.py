@@ -3,9 +3,8 @@ RAG Technical Knowledge Route Handlers.
 Exposes direct semantic queries to the persistent vector database.
 """
 
-from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.api.dependencies.services import get_diagnostic_orchestrator
 from src.api.services.orchestrator import DiagnosticOrchestrator
@@ -17,7 +16,7 @@ class RAGQueryResultItem(BaseModel):
     chunk_id: str
     document_name: str
     page_number: int
-    section: Optional[str]
+    section: str | None
     score: float
     text: str
     citation: str
@@ -26,13 +25,17 @@ class RAGQueryResultItem(BaseModel):
 class RAGQueryResponse(BaseModel):
     query: str
     results_count: int
-    matches: List[RAGQueryResultItem]
+    matches: list[RAGQueryResultItem]
 
 
 @router.get("/query", response_model=RAGQueryResponse, status_code=status.HTTP_200_OK)
 async def query_technical_manuals(
-    q: str = Query(..., description="Technical question or fault symptom", json_schema_extra={"examples": ["vibration severity limits ISO"]}),
-    equipment_type: Optional[str] = Query(None, description="Optional equipment filter (motor, pump, gearbox)"),
+    q: str = Query(
+        ...,
+        description="Technical question or fault symptom",
+        json_schema_extra={"examples": ["vibration severity limits ISO"]},
+    ),
+    equipment_type: str | None = Query(None, description="Optional equipment filter (motor, pump, gearbox)"),
     top_k: int = Query(5, ge=1, le=20, description="Max candidate chunks to return"),
     orchestrator: DiagnosticOrchestrator = Depends(get_diagnostic_orchestrator),
 ):

@@ -1,14 +1,14 @@
-﻿"""
+"""
 Agent Tool Interfaces.
 Allows the reasoning agent to interact safely with RAG retrieval, sensor state checkers, and ISO standards.
 """
 
-from abc import ABC, abstractmethod
 import logging
-from typing import Any, Dict, List, Optional
+from abc import ABC, abstractmethod
+from typing import Any
 
-from src.rag.retrieval.retriever import TechnicalRetriever
 from src.agent.core.schema import DiagnosticEvidenceItem, EvidenceType, SensorMeasurement
+from src.rag.retrieval.retriever import TechnicalRetriever
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +48,10 @@ class TechnicalKnowledgeRetrievalTool(BaseAgentTool):
     def execute(
         self,
         query: str,
-        equipment_type: Optional[str] = None,
+        equipment_type: str | None = None,
         top_k: int = 3,
         threshold: float = 0.15,
-    ) -> List[DiagnosticEvidenceItem]:
+    ) -> list[DiagnosticEvidenceItem]:
         filters = {"equipment_type": equipment_type} if equipment_type else None
         results = self.retriever.retrieve(
             query=query,
@@ -60,7 +60,7 @@ class TechnicalKnowledgeRetrievalTool(BaseAgentTool):
             similarity_threshold=threshold,
         )
 
-        evidence_items: List[DiagnosticEvidenceItem] = []
+        evidence_items: list[DiagnosticEvidenceItem] = []
         for r in results:
             citation = f"{r.document_name} (Page {r.page_number}{', Section: ' + r.section if r.section else ''})"
             evidence_items.append(
@@ -94,8 +94,8 @@ class SensorStateInspectionTool(BaseAgentTool):
     def description(self) -> str:
         return "Inspect and evaluate numerical sensor measurements against normal, warning, and critical thresholds."
 
-    def execute(self, measurements: List[Dict[str, Any]]) -> List[SensorMeasurement]:
-        analyzed: List[SensorMeasurement] = []
+    def execute(self, measurements: list[dict[str, Any]]) -> list[SensorMeasurement]:
+        analyzed: list[SensorMeasurement] = []
         for m in measurements:
             param = m.get("parameter", "unknown")
             val = float(m.get("value", 0.0))
@@ -144,7 +144,7 @@ class ISOVibrationStandardTool(BaseAgentTool):
     def description(self) -> str:
         return "Map vibration RMS velocity (mm/s) to ISO 10816-3 severity zones (A: Good, B: Acceptable, C: Warning, D: Danger)."
 
-    def execute(self, rms_velocity_mms: float) -> Dict[str, Any]:
+    def execute(self, rms_velocity_mms: float) -> dict[str, Any]:
         v = float(rms_velocity_mms)
         if v < 2.3:
             zone = "Zone A (Good)"

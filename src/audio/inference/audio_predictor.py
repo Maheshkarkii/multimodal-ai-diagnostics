@@ -1,17 +1,17 @@
-﻿"""
+"""
 Acoustic Inference Engine with 512-dim Feature Embedding Extraction.
 """
 
 from pathlib import Path
-from typing import Dict, Any, List, Union, Optional
+from typing import Any
+
 import numpy as np
 import torch
 import torch.nn as nn
 
-from src.audio.preprocessing.audio_transforms import AudioPreprocessor
 from src.audio.models.audio_cnn import build_audio_model
+from src.audio.preprocessing.audio_transforms import AudioPreprocessor
 from src.utils.device import resolve_device
-
 
 DEFAULT_AUDIO_CLASSES = [
     "normal_operation",
@@ -27,9 +27,9 @@ class AudioPredictor:
 
     def __init__(
         self,
-        checkpoint_path: Optional[Union[str, Path]] = None,
-        model: Optional[nn.Module] = None,
-        class_names: Optional[List[str]] = None,
+        checkpoint_path: str | Path | None = None,
+        model: nn.Module | None = None,
+        class_names: list[str] | None = None,
         sample_rate: int = 16000,
         duration: float = 3.0,
         device: str = "auto",
@@ -64,11 +64,11 @@ class AudioPredictor:
     @torch.no_grad()
     def predict(
         self,
-        audio_input: Union[str, Path, np.ndarray, torch.Tensor],
-        src_sr: Optional[int] = None,
+        audio_input: str | Path | np.ndarray | torch.Tensor,
+        src_sr: int | None = None,
         top_k: int = 3,
         return_embedding: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Run inference on a single audio recording (.wav).
 

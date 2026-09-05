@@ -1,9 +1,10 @@
-﻿"""
+"""
 Frontend Integration Test for Phase 12.
 Simulates client-side form submissions and tests compatibility with the FastAPI backend.
 """
 
 from fastapi.testclient import TestClient
+
 from src.api.main import create_app
 
 

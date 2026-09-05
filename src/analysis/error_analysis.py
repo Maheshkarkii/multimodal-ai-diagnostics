@@ -1,14 +1,14 @@
-﻿"""
+"""
 Diagnostic Error Analysis and Confidence Calibration Module.
 """
 
-from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 import numpy as np
 import torch
 import torch.nn as nn
+from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader
-from sklearn.metrics import classification_report, confusion_matrix
 
 from src.utils.device import resolve_device
 from src.utils.logging import setup_logger
@@ -23,9 +23,9 @@ class DiagnosticErrorAnalyzer:
     def __init__(
         self,
         model: nn.Module,
-        class_names: List[str],
+        class_names: list[str],
         device: str = "auto",
-        logger: Optional[Any] = None,
+        logger: Any | None = None,
     ):
         self.device = resolve_device(device)
         self.model = model.to(self.device)
@@ -33,9 +33,7 @@ class DiagnosticErrorAnalyzer:
         self.logger = logger or setup_logger("ErrorAnalyzer")
 
     @torch.no_grad()
-    def run_comprehensive_analysis(
-        self, test_loader: DataLoader, confidence_threshold: float = 0.60
-    ) -> Dict[str, Any]:
+    def run_comprehensive_analysis(self, test_loader: DataLoader, confidence_threshold: float = 0.60) -> dict[str, Any]:
         """
         Execute detailed error and confidence analysis across test dataset.
 
@@ -68,12 +66,14 @@ class DiagnosticErrorAnalyzer:
                 all_confidences.append(conf_val)
 
                 if pred_idx != true_idx:
-                    misclassifications.append({
-                        "true_class": self.class_names[true_idx],
-                        "predicted_class": self.class_names[pred_idx],
-                        "confidence": conf_val,
-                        "is_low_confidence": conf_val < confidence_threshold,
-                    })
+                    misclassifications.append(
+                        {
+                            "true_class": self.class_names[true_idx],
+                            "predicted_class": self.class_names[pred_idx],
+                            "confidence": conf_val,
+                            "is_low_confidence": conf_val < confidence_threshold,
+                        }
+                    )
 
         y_true = np.array(all_targets)
         y_pred = np.array(all_preds)
@@ -97,9 +97,7 @@ class DiagnosticErrorAnalyzer:
         mean_conf_correct = float(np.mean(confidences[correct_mask])) if np.any(correct_mask) else 0.0
         mean_conf_incorrect = float(np.mean(confidences[incorrect_mask])) if np.any(incorrect_mask) else 0.0
 
-        low_conf_predictions = [
-            m for m in misclassifications if m["is_low_confidence"]
-        ]
+        low_conf_predictions = [m for m in misclassifications if m["is_low_confidence"]]
 
         report = {
             "total_evaluated": len(y_true),
@@ -113,10 +111,15 @@ class DiagnosticErrorAnalyzer:
         }
 
         self.logger.info("=== Diagnostic Error Analysis ===")
-        self.logger.info("Total Evaluated: %d | Total Errors: %d (Error Rate: %.2f%%)",
-                         report["total_evaluated"], report["total_errors"], report["error_rate"] * 100)
-        self.logger.info("Confidence Calibration: Correct Mean=%.3f, Incorrect Mean=%.3f",
-                         mean_conf_correct, mean_conf_incorrect)
+        self.logger.info(
+            "Total Evaluated: %d | Total Errors: %d (Error Rate: %.2f%%)",
+            report["total_evaluated"],
+            report["total_errors"],
+            report["error_rate"] * 100,
+        )
+        self.logger.info(
+            "Confidence Calibration: Correct Mean=%.3f, Incorrect Mean=%.3f", mean_conf_correct, mean_conf_incorrect
+        )
         self.logger.info("Top Failure Confusions: %s", sorted_confusions[:3])
 
         return report

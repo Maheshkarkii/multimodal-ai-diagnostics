@@ -2,14 +2,17 @@
 Health and Readiness Route Handlers.
 """
 
-from datetime import datetime
 import os
-from fastapi import APIRouter, Depends, status, Response
-from src.api.schemas.diagnosis import HealthResponse, ReadinessResponse
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, Response, status
+
 from src.api.dependencies.services import get_diagnostic_orchestrator
+from src.api.schemas.diagnosis import HealthResponse, ReadinessResponse
 from src.api.services.orchestrator import DiagnosticOrchestrator
 
 router = APIRouter(tags=["System Health & Monitoring"])
+
 
 @router.get("/health", response_model=HealthResponse, status_code=status.HTTP_200_OK)
 async def health_check():

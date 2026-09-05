@@ -1,17 +1,15 @@
-﻿"""
+"""
 Unit and integration tests for Phase 5 Multimodal Fusion & Unified Representation.
 """
 
-from pathlib import Path
-import tempfile
 import numpy as np
 import pytest
 import torch
 
-from src.multimodal.text.text_encoder import TechnicianTextEncoder, build_text_encoder
-from src.multimodal.models.fusion_model import MultimodalFusionModel, ModalityProjection, build_multimodal_model
 from src.multimodal.data.multimodal_dataset import AlignedMultimodalDataset, custom_multimodal_collate
 from src.multimodal.inference.multimodal_predictor import MultimodalPredictor
+from src.multimodal.models.fusion_model import ModalityProjection, build_multimodal_model
+from src.multimodal.text.text_encoder import build_text_encoder
 
 
 def test_text_encoder_deterministic_embeddings():
@@ -99,8 +97,12 @@ def test_multimodal_predictor_partial_evidence():
 
     # Supply only text and sensor
     sensor_dict = {
-        "temperature_c": 92.0, "vibration_rms_g": 5.0, "rotational_speed_rpm": 1475.0,
-        "motor_current_a": 10.2, "hydraulic_pressure_bar": 140.0, "load_percentage": 70.0
+        "temperature_c": 92.0,
+        "vibration_rms_g": 5.0,
+        "rotational_speed_rpm": 1475.0,
+        "motor_current_a": 10.2,
+        "hydraulic_pressure_bar": 140.0,
+        "load_percentage": 70.0,
     }
     notes = "Bearing chirping audible from pump casing."
 

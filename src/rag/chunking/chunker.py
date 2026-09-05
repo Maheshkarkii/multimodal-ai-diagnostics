@@ -1,11 +1,10 @@
-﻿"""
+"""
 Deliberate Technical Document Chunker.
 Splits documents by sections, paragraphs, bullet points, and tables while preserving page provenance.
 """
 
-import re
 import logging
-from typing import List, Optional
+import re
 
 from src.rag.config import ChunkingConfig
 from src.rag.schema import DocumentChunk, DocumentMetadata, RawDocumentPage
@@ -19,18 +18,14 @@ class TechnicalDocumentChunker:
     and specification sheets.
     """
 
-    def __init__(self, config: Optional[ChunkingConfig] = None):
+    def __init__(self, config: ChunkingConfig | None = None):
         self.config = config or ChunkingConfig()
 
-    def chunk_document(
-        self,
-        metadata: DocumentMetadata,
-        pages: List[RawDocumentPage]
-    ) -> List[DocumentChunk]:
+    def chunk_document(self, metadata: DocumentMetadata, pages: list[RawDocumentPage]) -> list[DocumentChunk]:
         """
         Split document pages into coherent, structure-preserving chunks.
         """
-        chunks: List[DocumentChunk] = []
+        chunks: list[DocumentChunk] = []
         global_chunk_idx = 0
 
         for page in pages:
@@ -57,13 +52,13 @@ class TechnicalDocumentChunker:
 
         return chunks
 
-    def _extract_semantic_blocks(self, text: str) -> List[str]:
+    def _extract_semantic_blocks(self, text: str) -> list[str]:
         """
         Split raw text into logical semantic units (sections, paragraphs, tables).
         """
         # Split by double newline first
         raw_paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
-        blocks: List[str] = []
+        blocks: list[str] = []
 
         for p in raw_paragraphs:
             # Check if block is a table or contains structured procedures
@@ -79,16 +74,16 @@ class TechnicalDocumentChunker:
 
         return blocks
 
-    def _split_large_paragraph(self, paragraph: str) -> List[str]:
+    def _split_large_paragraph(self, paragraph: str) -> list[str]:
         """Split oversized paragraph using sentence boundaries or numbered lists."""
         # Split on numbered list items or sentences
-        sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z0-9])|(?<=\n)(?=\d+[\.\)])', paragraph)
+        sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z0-9])|(?<=\n)(?=\d+[\.\)])", paragraph)
         sentences = [s.strip() for s in sentences if s.strip()]
 
         if not sentences:
             return [paragraph]
 
-        sub_blocks: List[str] = []
+        sub_blocks: list[str] = []
         curr = ""
 
         for s in sentences:
@@ -107,15 +102,15 @@ class TechnicalDocumentChunker:
 
     def _group_blocks_into_chunks(
         self,
-        blocks: List[str],
+        blocks: list[str],
         metadata: DocumentMetadata,
         page_number: int,
-        default_section: Optional[str],
+        default_section: str | None,
         start_index: int,
-    ) -> List[DocumentChunk]:
+    ) -> list[DocumentChunk]:
         """Combine blocks into chunks with controlled size and overlap."""
-        chunks: List[DocumentChunk] = []
-        current_text_blocks: List[str] = []
+        chunks: list[DocumentChunk] = []
+        current_text_blocks: list[str] = []
         current_len = 0
         current_section = default_section
         chunk_idx = start_index
@@ -151,7 +146,11 @@ class TechnicalDocumentChunker:
                 chunk_idx += 1
 
                 # Calculate overlap: retain the last block if it fits within chunk_overlap
-                if self.config.chunk_overlap > 0 and current_text_blocks and len(current_text_blocks[-1]) <= self.config.chunk_overlap:
+                if (
+                    self.config.chunk_overlap > 0
+                    and current_text_blocks
+                    and len(current_text_blocks[-1]) <= self.config.chunk_overlap
+                ):
                     current_text_blocks = [current_text_blocks[-1], block]
                     current_len = len(current_text_blocks[0]) + block_len + 1
                 else:

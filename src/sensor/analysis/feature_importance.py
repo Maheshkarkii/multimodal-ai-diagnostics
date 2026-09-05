@@ -1,12 +1,12 @@
-﻿"""
+"""
 Sensor Feature Importance via Model-Agnostic Permutation Importance.
 """
 
-from typing import Dict, List, Any
 import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.metrics import f1_score
+
 from src.utils.device import resolve_device
 
 
@@ -14,11 +14,11 @@ def compute_permutation_feature_importance(
     model: nn.Module,
     X_val: np.ndarray,
     y_val: np.ndarray,
-    feature_names: List[str],
+    feature_names: list[str],
     device: str = "auto",
     n_repeats: int = 5,
     seed: int = 42,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     Calculate permutation feature importance on validation telemetry.
     """

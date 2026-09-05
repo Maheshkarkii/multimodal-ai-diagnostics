@@ -1,39 +1,34 @@
-﻿"""
+"""
 Unit and Integration Tests for Phase 6 Technical Knowledge RAG Subsystem.
 """
 
-import os
 import shutil
 import tempfile
 from pathlib import Path
-import pytest
-import numpy as np
 
-from src.rag.config import (
-    RAGConfig,
-    DocumentIngestionConfig,
-    ChunkingConfig,
-    EmbeddingConfig,
-    VectorStoreConfig,
-    RetrievalConfig,
-)
-from src.rag.schema import (
-    DocumentMetadata,
-    RawDocumentPage,
-    DocumentChunk,
-    RetrievedEvidence,
-    StructuredEvidenceContext,
-)
-from src.rag.ingestion.parser import DocumentParser, compute_file_hash
-from src.rag.ingestion.pipeline import DocumentIngestionPipeline
+import numpy as np
+import pytest
+
 from src.rag.chunking.chunker import TechnicalDocumentChunker
+from src.rag.config import (
+    ChunkingConfig,
+    DocumentIngestionConfig,
+    RetrievalConfig,
+    VectorStoreConfig,
+)
 from src.rag.embeddings.model import (
     DeterministicDenseEmbeddingModel,
-    create_embedding_model,
+)
+from src.rag.evaluation.evaluator import EvaluationSample, RAGEvaluator
+from src.rag.ingestion.parser import DocumentParser, compute_file_hash
+from src.rag.ingestion.pipeline import DocumentIngestionPipeline
+from src.rag.retrieval.retriever import TechnicalRetriever
+from src.rag.schema import (
+    DocumentChunk,
+    DocumentMetadata,
+    RawDocumentPage,
 )
 from src.rag.vectorstore.store import NumpyFlatVectorStore
-from src.rag.retrieval.retriever import TechnicalRetriever, preprocess_query, tokenize_text
-from src.rag.evaluation.evaluator import EvaluationSample, RAGEvaluator
 
 
 @pytest.fixture
@@ -69,7 +64,7 @@ def test_document_parser_text_and_markdown(temp_dir):
     md_file = temp_dir / "test_manual.md"
     md_file.write_text(
         "# MOTOR MANUAL\n\n--- PAGE 1 ---\n1.0 General Specifications\nOperating temp is 60C.\n\n--- PAGE 2 ---\n2.0 Lubrication\nApply grease every 500 hours.",
-        encoding="utf-8"
+        encoding="utf-8",
     )
 
     parser = DocumentParser()
@@ -101,7 +96,7 @@ def test_technical_chunking_with_headings_and_tables(temp_dir):
         file_hash="abc123",
         file_size_bytes=1024,
         num_pages=1,
-        equipment_type="compressor"
+        equipment_type="compressor",
     )
     pages = [
         RawDocumentPage(
@@ -113,7 +108,7 @@ def test_technical_chunking_with_headings_and_tables(temp_dir):
                 "Paragraph describing regular maintenance procedures for air filtration and oil separators. "
                 "Ensure intake valves are cleaned weekly."
             ),
-            section_title="SECTION 1: COMPRESSOR LIMITS"
+            section_title="SECTION 1: COMPRESSOR LIMITS",
         )
     ]
     chunks = chunker.chunk_document(meta, pages)
@@ -144,9 +139,7 @@ def test_deterministic_embedding_model():
 
 def test_vector_store_persistence_and_filtering(temp_dir):
     cfg = VectorStoreConfig(
-        persist_directory=str(temp_dir / "store"),
-        collection_name="test_collection",
-        distance_metric="cosine"
+        persist_directory=str(temp_dir / "store"), collection_name="test_collection", distance_metric="cosine"
     )
     store = NumpyFlatVectorStore(cfg)
     emb_model = DeterministicDenseEmbeddingModel(embedding_dim=128)
@@ -158,7 +151,7 @@ def test_vector_store_persistence_and_filtering(temp_dir):
         page_number=1,
         text="Motor rotor unbalance 1X vibration limit is 4.5 mm/s.",
         chunk_index=0,
-        equipment_type="motor"
+        equipment_type="motor",
     )
     c2 = DocumentChunk.create(
         document_id="doc_pump",
@@ -167,7 +160,7 @@ def test_vector_store_persistence_and_filtering(temp_dir):
         page_number=2,
         text="Centrifugal pump cavitation produces broadband acoustic hiss.",
         chunk_index=0,
-        equipment_type="pump"
+        equipment_type="pump",
     )
 
     embs = emb_model.embed_documents([c1.text, c2.text])
@@ -200,7 +193,7 @@ def test_retriever_similarity_threshold_and_context_construction(temp_dir):
         text="Inspect bearing grease discoloration and measure temperature every shift.",
         chunk_index=0,
         section="5.0 Bearing Lubrication",
-        equipment_type="bearing"
+        equipment_type="bearing",
     )
     store.add_chunks([c1], emb_model.embed_documents([c1.text]))
 
@@ -260,7 +253,7 @@ def test_rag_evaluation_framework():
         page_number=4,
         text="Fan blade loose mountings cause high axial vibration.",
         chunk_index=0,
-        section="BLADE INSPECTION"
+        section="BLADE INSPECTION",
     )
     store.add_chunks([chunk], emb_model.embed_documents([chunk.text]))
 
@@ -273,7 +266,7 @@ def test_rag_evaluation_framework():
             query="What causes fan blade axial vibration?",
             target_document_name="fan_manual.pdf",
             target_page=4,
-            target_section="BLADE INSPECTION"
+            target_section="BLADE INSPECTION",
         )
     ]
 

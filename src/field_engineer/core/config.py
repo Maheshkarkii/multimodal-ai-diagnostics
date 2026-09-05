@@ -1,19 +1,21 @@
-﻿"""
+"""
 Configuration management system.
 
 Supports dataclass-based schemas with YAML serialization/deserialization,
 default fallbacks, and validation for reproducible experiments.
 """
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any
+
 import yaml
 
 
 @dataclass
 class SystemConfig:
     """Core hardware and execution configuration."""
+
     device: str = "auto"  # "auto", "cuda", "cpu", "mps"
     seed: int = 42
     deterministic: bool = True
@@ -26,6 +28,7 @@ class SystemConfig:
 @dataclass
 class ModelConfig:
     """Base model architecture settings."""
+
     name: str = "resnet18"
     num_classes: int = 5
     pretrained: bool = True
@@ -36,6 +39,7 @@ class ModelConfig:
 @dataclass
 class TrainingConfig:
     """Optimization and training hyperparameter settings."""
+
     batch_size: int = 32
     epochs: int = 20
     learning_rate: float = 1e-3
@@ -44,12 +48,13 @@ class TrainingConfig:
     scheduler: str = "cosine"  # "cosine", "step", "none"
     mixed_precision: bool = True
     early_stopping_patience: int = 5
-    gradient_clip_val: Optional[float] = 1.0
+    gradient_clip_val: float | None = 1.0
 
 
 @dataclass
 class DatasetConfig:
     """Dataset and path configurations."""
+
     name: str = "synthetic_industrial_vision"
     data_dir: str = "data/raw"
     processed_dir: str = "data/processed"
@@ -62,6 +67,7 @@ class DatasetConfig:
 @dataclass
 class ExperimentConfig:
     """Top-level unified experiment configuration."""
+
     experiment_name: str = "baseline_experiment"
     system: SystemConfig = field(default_factory=SystemConfig)
     dataset: DatasetConfig = field(default_factory=DatasetConfig)
@@ -69,19 +75,19 @@ class ExperimentConfig:
     training: TrainingConfig = field(default_factory=TrainingConfig)
 
     @classmethod
-    def from_yaml(cls, yaml_path: Union[str, Path]) -> "ExperimentConfig":
+    def from_yaml(cls, yaml_path: str | Path) -> "ExperimentConfig":
         """Load experiment config from a YAML file."""
         yaml_path = Path(yaml_path)
         if not yaml_path.exists():
             raise FileNotFoundError(f"Configuration file not found: {yaml_path}")
 
-        with open(yaml_path, "r", encoding="utf-8") as f:
+        with open(yaml_path, encoding="utf-8") as f:
             raw_dict = yaml.safe_load(f) or {}
 
         return cls.from_dict(raw_dict)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "ExperimentConfig":
+    def from_dict(cls, d: dict[str, Any]) -> "ExperimentConfig":
         """Construct ExperimentConfig from a nested dictionary."""
         system_data = d.get("system", {})
         dataset_data = d.get("dataset", {})
@@ -96,7 +102,7 @@ class ExperimentConfig:
             training=TrainingConfig(**training_data),
         )
 
-    def to_yaml(self, save_path: Union[str, Path]) -> None:
+    def to_yaml(self, save_path: str | Path) -> None:
         """Serialize configuration to a YAML file."""
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)

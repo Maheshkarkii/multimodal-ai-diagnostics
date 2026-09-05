@@ -1,24 +1,25 @@
-﻿"""
+"""
 Multimodal Diagnostic Inference Engine with Modality Attribution and Unified Representation Extraction.
 """
 
 from pathlib import Path
-from typing import Dict, Any, List, Union, Optional
-from PIL import Image
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from PIL import Image
 
-from src.vision.model import build_vision_model
 from src.audio.models.audio_cnn import build_audio_model
-from src.sensor.models.sensor_mlp import build_sensor_model
-from src.multimodal.text.text_encoder import build_text_encoder
-from src.multimodal.models.fusion_model import build_multimodal_model
-from src.preprocessing.transforms import get_industrial_eval_transforms
 from src.audio.preprocessing.audio_transforms import AudioPreprocessor
+from src.multimodal.models.fusion_model import build_multimodal_model
+from src.multimodal.text.text_encoder import build_text_encoder
+from src.preprocessing.transforms import get_industrial_eval_transforms
+from src.sensor.models.sensor_mlp import build_sensor_model
 from src.sensor.preprocessing.sensor_scaler import SensorPreprocessor
 from src.utils.device import resolve_device
+from src.vision.model import build_vision_model
 
 
 class MultimodalPredictor:
@@ -37,9 +38,9 @@ class MultimodalPredictor:
 
     def __init__(
         self,
-        checkpoint_path: Optional[Union[str, Path]] = None,
-        fusion_model: Optional[nn.Module] = None,
-        class_names: Optional[List[str]] = None,
+        checkpoint_path: str | Path | None = None,
+        fusion_model: nn.Module | None = None,
+        class_names: list[str] | None = None,
         device: str = "auto",
     ):
         self.device = resolve_device(device)
@@ -59,9 +60,16 @@ class MultimodalPredictor:
 
         self.vision_tf = get_industrial_eval_transforms(image_size=224)
         self.audio_prep = AudioPreprocessor(sample_rate=16000, duration=3.0)
-        self.sensor_prep = SensorPreprocessor(feature_columns=[
-            "temperature_c", "vibration_rms_g", "rotational_speed_rpm", "motor_current_a", "hydraulic_pressure_bar", "load_percentage"
-        ])
+        self.sensor_prep = SensorPreprocessor(
+            feature_columns=[
+                "temperature_c",
+                "vibration_rms_g",
+                "rotational_speed_rpm",
+                "motor_current_a",
+                "hydraulic_pressure_bar",
+                "load_percentage",
+            ]
+        )
 
         # 2. Fusion Model
         if fusion_model is not None:
@@ -82,13 +90,13 @@ class MultimodalPredictor:
     @torch.no_grad()
     def predict(
         self,
-        image: Optional[Union[str, Path, Image.Image, np.ndarray, torch.Tensor]] = None,
-        audio: Optional[Union[str, Path, np.ndarray, torch.Tensor]] = None,
-        sensor_data: Optional[Union[Dict[str, float], pd.DataFrame, np.ndarray, torch.Tensor]] = None,
-        technician_notes: Optional[Union[str, torch.Tensor]] = None,
+        image: str | Path | Image.Image | np.ndarray | torch.Tensor | None = None,
+        audio: str | Path | np.ndarray | torch.Tensor | None = None,
+        sensor_data: dict[str, float] | pd.DataFrame | np.ndarray | torch.Tensor | None = None,
+        technician_notes: str | torch.Tensor | None = None,
         top_k: int = 3,
         return_unified_embedding: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute unified multimodal diagnostic inference.
         """
@@ -135,7 +143,9 @@ class MultimodalPredictor:
                 embs["sensor"] = sensor_data.to(self.device)
             else:
                 df = pd.DataFrame([sensor_data]) if isinstance(sensor_data, dict) else sensor_data
-                s_scaled = self.sensor_prep.transform(df) if self.sensor_prep.is_fitted else df.to_numpy(dtype=np.float32)
+                s_scaled = (
+                    self.sensor_prep.transform(df) if self.sensor_prep.is_fitted else df.to_numpy(dtype=np.float32)
+                )
                 s_t = torch.tensor(s_scaled, dtype=torch.float32).to(self.device)
                 embs["sensor"] = self.sensor_encoder.extract_features(s_t)
         else:

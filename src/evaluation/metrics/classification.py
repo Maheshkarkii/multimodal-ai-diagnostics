@@ -3,17 +3,17 @@ Classification, Discrimination, and Multi-Class Evaluation Metrics.
 Computes Accuracy, Macro/Weighted F1, Recall, Precision, and Confusion Matrix.
 """
 
-from typing import Dict, List, Optional, Tuple
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, confusion_matrix, roc_auc_score
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_fscore_support, roc_auc_score
+
 from src.evaluation.schemas import ModalityMetrics
 
 
 def calculate_classification_metrics(
-    y_true: List[str],
-    y_pred: List[str],
-    labels: Optional[List[str]] = None,
-    y_prob: Optional[np.ndarray] = None,
+    y_true: list[str],
+    y_pred: list[str],
+    labels: list[str] | None = None,
+    y_prob: np.ndarray | None = None,
 ) -> ModalityMetrics:
     """
     Compute full multi-class classification and discrimination metrics.
@@ -22,7 +22,7 @@ def calculate_classification_metrics(
         return ModalityMetrics(sample_count=0)
 
     if labels is None:
-        labels = sorted(list(set(y_true) | set(y_pred)))
+        labels = sorted(set(y_true) | set(y_pred))
 
     acc = float(accuracy_score(y_true, y_pred))
     p_macro, r_macro, f1_macro, _ = precision_recall_fscore_support(
@@ -31,7 +31,7 @@ def calculate_classification_metrics(
     _, _, f1_weighted, _ = precision_recall_fscore_support(
         y_true, y_pred, labels=labels, average="weighted", zero_division=0
     )
-    
+
     # Per-class F1
     _, _, per_class_f1_arr, _ = precision_recall_fscore_support(
         y_true, y_pred, labels=labels, average=None, zero_division=0

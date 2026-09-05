@@ -7,7 +7,7 @@ import json
 import logging
 from pathlib import Path
 from threading import Lock
-from typing import List, Optional
+
 from src.monitoring.events import DiagnosticMonitoringEvent
 
 logger = logging.getLogger(__name__)
@@ -28,14 +28,14 @@ class MonitoringStore:
             with open(self.log_path, "a", encoding="utf-8") as f:
                 f.write(line)
 
-    def load_events(self, limit: int = 1000) -> List[DiagnosticMonitoringEvent]:
+    def load_events(self, limit: int = 1000) -> list[DiagnosticMonitoringEvent]:
         """Load recent monitoring events for aggregation and drift analysis."""
         if not self.log_path.exists():
             return []
-        
+
         events = []
         with self._lock:
-            with open(self.log_path, "r", encoding="utf-8") as f:
+            with open(self.log_path, encoding="utf-8") as f:
                 for line in f:
                     if line.strip():
                         try:

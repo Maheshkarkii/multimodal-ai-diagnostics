@@ -1,38 +1,38 @@
-﻿"""
+"""
 RAG module main exports.
 """
 
-from src.rag.config import (
-    RAGConfig,
-    DocumentIngestionConfig,
-    ChunkingConfig,
-    EmbeddingConfig,
-    VectorStoreConfig,
-    RetrievalConfig,
-)
-from src.rag.schema import (
-    DocumentMetadata,
-    RawDocumentPage,
-    DocumentChunk,
-    RetrievedEvidence,
-    StructuredEvidenceContext,
-)
-from src.rag.ingestion import DocumentParser, DocumentIngestionPipeline, compute_file_hash
 from src.rag.chunking import TechnicalDocumentChunker
+from src.rag.config import (
+    ChunkingConfig,
+    DocumentIngestionConfig,
+    EmbeddingConfig,
+    RAGConfig,
+    RetrievalConfig,
+    VectorStoreConfig,
+)
 from src.rag.embeddings import (
     BaseEmbeddingModel,
     DeterministicDenseEmbeddingModel,
     SentenceTransformerEmbeddingModel,
     create_embedding_model,
 )
-from src.rag.vectorstore import BaseVectorStore, NumpyFlatVectorStore
+from src.rag.evaluation import EvaluationMetrics, EvaluationSample, RAGEvaluator
+from src.rag.ingestion import DocumentIngestionPipeline, DocumentParser, compute_file_hash
 from src.rag.retrieval import (
-    TechnicalRetriever,
     KnowledgeBaseService,
+    TechnicalRetriever,
     preprocess_query,
     tokenize_text,
 )
-from src.rag.evaluation import EvaluationSample, EvaluationMetrics, RAGEvaluator
+from src.rag.schema import (
+    DocumentChunk,
+    DocumentMetadata,
+    RawDocumentPage,
+    RetrievedEvidence,
+    StructuredEvidenceContext,
+)
+from src.rag.vectorstore import BaseVectorStore, NumpyFlatVectorStore
 
 __all__ = [
     "RAGConfig",

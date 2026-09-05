@@ -1,8 +1,7 @@
-﻿"""
+"""
 Domain-appropriate image preprocessing and data augmentation pipelines for industrial fault diagnostics.
 """
 
-from typing import Optional
 from torchvision import transforms
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
@@ -38,10 +37,12 @@ def get_industrial_train_transforms(
             )
         )
 
-    transform_list.extend([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
-    ])
+    transform_list.extend(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ]
+    )
 
     return transforms.Compose(transform_list)
 
@@ -50,12 +51,14 @@ def get_industrial_eval_transforms(image_size: int = 224) -> transforms.Compose:
     """
     Construct deterministic validation, test, and production inference transformations.
     """
-    return transforms.Compose([
-        transforms.Lambda(lambda img: img.convert("RGB")),
-        transforms.Resize((image_size, image_size)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
-    ])
+    return transforms.Compose(
+        [
+            transforms.Lambda(lambda img: img.convert("RGB")),
+            transforms.Resize((image_size, image_size)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ]
+    )
 
 
 # Aliases for backward compatibility with baseline test suites

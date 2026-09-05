@@ -1,3 +1,3 @@
-﻿from .sensor_predictor import SensorPredictor
+from .sensor_predictor import SensorPredictor
 
 __all__ = ["SensorPredictor"]

@@ -1,21 +1,22 @@
-﻿"""
+"""
 Comprehensive Explainability and Auditable Report Synthesis Engine.
 Collects, normalizes, assigns stable IDs, maps claims to evidence, verifies citations,
 decomposes confidence, and renders auditable diagnostic reports.
 """
 
-from datetime import datetime
 import logging
-from pathlib import Path
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any
 
+from src.agent.core.schema import DiagnosticReport, DiagnosticState
+from src.explainability.audio.spectrogram import generate_spectrogram_visualization
+from src.explainability.audit.audit_service import AuditService
 from src.explainability.core.config import ExplainabilityConfig
 from src.explainability.core.schema import (
     ActionRequirement,
     AuditableDiagnosticReport,
     AuditableEvidenceItem,
-    AuditTrailRecord,
     ClaimEvidenceMapping,
     ClaimSupportStatus,
     ConfidenceDecomposition,
@@ -25,11 +26,8 @@ from src.explainability.core.schema import (
     TraceableRecommendedAction,
     UncertaintyProfile,
 )
-from src.explainability.audit.audit_service import AuditService
-from src.explainability.vision.gradcam import generate_gradcam_visualization
-from src.explainability.audio.spectrogram import generate_spectrogram_visualization
 from src.explainability.sensor.telemetry_plot import generate_sensor_threshold_plot
-from src.agent.core.schema import DiagnosticReport, DiagnosticState
+from src.explainability.vision.gradcam import generate_gradcam_visualization
 
 logger = logging.getLogger(__name__)
 
@@ -40,15 +38,15 @@ class ExplainabilityService:
     citation verification, and auditable diagnostic report generation.
     """
 
-    def __init__(self, config: Optional[ExplainabilityConfig] = None):
+    def __init__(self, config: ExplainabilityConfig | None = None):
         self.config = config or ExplainabilityConfig()
         self.audit_service = AuditService(self.config.audit.audit_storage_dir)
 
     def generate_auditable_report(
         self,
         diagnostic_report: DiagnosticReport,
-        diagnostic_state: Optional[DiagnosticState] = None,
-        raw_inputs: Optional[Dict[str, Any]] = None,
+        diagnostic_state: DiagnosticState | None = None,
+        raw_inputs: dict[str, Any] | None = None,
     ) -> AuditableDiagnosticReport:
         """
         Transform raw diagnostic output into an auditable, evidence-backed report with stable IDs.
@@ -133,12 +131,10 @@ class ExplainabilityService:
         return auditable_report
 
     def _build_evidence_inventory(
-        self,
-        report: DiagnosticReport,
-        state: Optional[DiagnosticState]
-    ) -> List[AuditableEvidenceItem]:
+        self, report: DiagnosticReport, state: DiagnosticState | None
+    ) -> list[AuditableEvidenceItem]:
         """Catalog all inputs with standardized stable IDs (VIS-xxx, AUD-xxx, SEN-xxx, DOC-xxx)."""
-        inventory: List[AuditableEvidenceItem] = []
+        inventory: list[AuditableEvidenceItem] = []
         counts = {"VIS": 1, "AUD": 1, "SEN": 1, "TXT": 1, "DOC": 1, "FUS": 1}
 
         # Technician description
@@ -178,8 +174,10 @@ class ExplainabilityService:
 
             # Perception Modality Models
             for mod, obs in state.observations.items():
-                cat = EvidenceCategory.VISUAL if mod == "vision" else (
-                    EvidenceCategory.ACOUSTIC if mod == "audio" else EvidenceCategory.MODEL_FUSION
+                cat = (
+                    EvidenceCategory.VISUAL
+                    if mod == "vision"
+                    else (EvidenceCategory.ACOUSTIC if mod == "audio" else EvidenceCategory.MODEL_FUSION)
                 )
                 prefix = "VIS" if mod == "vision" else ("AUD" if mod == "audio" else "FUS")
                 inventory.append(
@@ -187,7 +185,7 @@ class ExplainabilityService:
                         evidence_id=f"{prefix}-{counts[prefix]:03d}",
                         category=cat,
                         source=f"{mod.capitalize()} Inference Backbone",
-                        description=f"Model classified event as '{obs.prediction}' with {obs.confidence*100:.1f}% confidence",
+                        description=f"Model classified event as '{obs.prediction}' with {obs.confidence * 100:.1f}% confidence",
                         quality=EvidenceQuality.HIGH if obs.confidence >= 0.80 else EvidenceQuality.MEDIUM,
                         prediction=obs.prediction,
                         confidence=obs.confidence,
@@ -247,12 +245,10 @@ class ExplainabilityService:
         return inventory
 
     def _map_claims_to_evidence(
-        self,
-        report: DiagnosticReport,
-        inventory: List[AuditableEvidenceItem]
-    ) -> List[ClaimEvidenceMapping]:
+        self, report: DiagnosticReport, inventory: list[AuditableEvidenceItem]
+    ) -> list[ClaimEvidenceMapping]:
         """Establish explicit bidirectional links connecting diagnostic claims to evidence IDs."""
-        mappings: List[ClaimEvidenceMapping] = []
+        mappings: list[ClaimEvidenceMapping] = []
 
         # Claim 1: Primary Diagnosis
         sup_ids = []
@@ -261,7 +257,20 @@ class ExplainabilityService:
 
         for ev in inventory:
             desc_l = ev.description.lower()
-            if any(k in desc_l for k in [diag_name, "bearing", "cavitation", "unbalance", "vibration", "squeal", "popping", "noise", "pressure"]):
+            if any(
+                k in desc_l
+                for k in [
+                    diag_name,
+                    "bearing",
+                    "cavitation",
+                    "unbalance",
+                    "vibration",
+                    "squeal",
+                    "popping",
+                    "noise",
+                    "pressure",
+                ]
+            ):
                 sup_ids.append(ev.evidence_id)
             elif "normal" in desc_l and "normal" not in diag_name:
                 con_ids.append(ev.evidence_id)
@@ -299,9 +308,7 @@ class ExplainabilityService:
         return mappings
 
     def _decompose_confidence(
-        self,
-        report: DiagnosticReport,
-        inventory: List[AuditableEvidenceItem]
+        self, report: DiagnosticReport, inventory: list[AuditableEvidenceItem]
     ) -> ConfidenceDecomposition:
         """Calculate multifactorial confidence attribution."""
         has_sensor = any(e.category == EvidenceCategory.SENSOR for e in inventory)
@@ -331,12 +338,10 @@ class ExplainabilityService:
         )
 
     def _build_traceable_actions(
-        self,
-        report: DiagnosticReport,
-        inventory: List[AuditableEvidenceItem]
-    ) -> List[TraceableRecommendedAction]:
+        self, report: DiagnosticReport, inventory: list[AuditableEvidenceItem]
+    ) -> list[TraceableRecommendedAction]:
         """Convert recommendations into traceable actions with requirement levels and justifying IDs."""
-        actions: List[TraceableRecommendedAction] = []
+        actions: list[TraceableRecommendedAction] = []
         doc_ids = [e.evidence_id for e in inventory if e.category == EvidenceCategory.TECHNICAL_DOCUMENT]
 
         for idx, act in enumerate(report.recommended_actions, start=1):
@@ -359,11 +364,7 @@ class ExplainabilityService:
 
         return actions
 
-    def _build_uncertainty_profile(
-        self,
-        report: DiagnosticReport,
-        state: Optional[DiagnosticState]
-    ) -> UncertaintyProfile:
+    def _build_uncertainty_profile(self, report: DiagnosticReport, state: DiagnosticState | None) -> UncertaintyProfile:
         """Delineate known facts from unknown gaps and uncertainty reduction steps."""
         confirmed = []
         if report.available_modalities:
@@ -372,12 +373,12 @@ class ExplainabilityService:
 
         unknowns = report.missing_information or [
             "Equipment total runtime hours since last overhaul",
-            "Direct physical bearing teardown inspection confirmation"
+            "Direct physical bearing teardown inspection confirmation",
         ]
 
         steps = [
             "Perform acoustic ultrasound stethoscope check on machine bearing housing.",
-            "Inspect physical grease sample for metallic particle discoloration."
+            "Inspect physical grease sample for metallic particle discoloration.",
         ]
 
         return UncertaintyProfile(
@@ -398,10 +399,7 @@ class ExplainabilityService:
             return DiagnosticSystemStatus.REQUIRES_HUMAN_INSPECTION
 
     def _generate_explanation_artifacts(
-        self,
-        case_id: str,
-        report: DiagnosticReport,
-        inventory: List[AuditableEvidenceItem]
+        self, case_id: str, report: DiagnosticReport, inventory: list[AuditableEvidenceItem]
     ) -> None:
         """Generate Grad-CAM, spectrogram, and sensor plots if enabled."""
         diag_type = report.primary_diagnosis
@@ -423,8 +421,14 @@ class ExplainabilityService:
         if self.config.sensor.save_visualizations:
             sens_dir = Path(self.config.sensor.output_dir)
             sens_data = [
-                {"parameter": e.source, "value": e.raw_value or 5.0, "warning_threshold": 4.5, "critical_threshold": 7.1}
-                for e in inventory if e.category == EvidenceCategory.SENSOR
+                {
+                    "parameter": e.source,
+                    "value": e.raw_value or 5.0,
+                    "warning_threshold": 4.5,
+                    "critical_threshold": 7.1,
+                }
+                for e in inventory
+                if e.category == EvidenceCategory.SENSOR
             ]
             if sens_data:
                 generate_sensor_threshold_plot(

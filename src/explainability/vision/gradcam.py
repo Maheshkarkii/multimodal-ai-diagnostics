@@ -1,11 +1,12 @@
-﻿"""
+"""
 Vision Explainability Module: Grad-CAM Saliency and Visual Feature Attribution.
 Generates localized heatmap overlays identifying regions that contributed to model predictions.
 """
 
-from pathlib import Path
-from typing import Any, Optional, Tuple
 import logging
+from pathlib import Path
+from typing import Any
+
 import numpy as np
 from PIL import Image
 
@@ -13,16 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 def generate_gradcam_visualization(
-    image_input: Optional[Any] = None,
-    output_path: Optional[Path] = None,
+    image_input: Any | None = None,
+    output_path: Path | None = None,
     defect_type: str = "bearing_defect_wear",
-) -> Optional[str]:
+) -> str | None:
     """
     Generate Grad-CAM activation heatmap overlay on equipment images.
     If no image is provided, creates a synthetic diagnostic visual heatmap for inspection verification.
     """
     try:
         import matplotlib
+
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
 
@@ -39,9 +41,9 @@ def generate_gradcam_visualization(
         xx, yy = np.meshgrid(x, y)
 
         if "bearing" in defect_type.lower():
-            heatmap = np.exp(-((xx - 0.5)**2 + (yy - 0.2)**2) / 0.8)
+            heatmap = np.exp(-((xx - 0.5) ** 2 + (yy - 0.2) ** 2) / 0.8)
         elif "crack" in defect_type.lower() or "loose" in defect_type.lower():
-            heatmap = np.exp(-((xx + 0.8)**2 + (yy + 0.5)**2) / 0.5)
+            heatmap = np.exp(-((xx + 0.8) ** 2 + (yy + 0.5) ** 2) / 0.5)
         else:
             heatmap = np.exp(-(xx**2 + yy**2) / 1.5)
 

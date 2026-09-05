@@ -1,16 +1,14 @@
-﻿"""
+"""
 LLM Provider Abstraction and Strict Structured Output Validation.
 Supports MockLLMProvider for deterministic offline execution/testing,
 as well as standard HTTP-based OpenAI/Anthropic/Gemini/Ollama interfaces.
 """
 
-from abc import ABC, abstractmethod
-import json
 import logging
-import os
-import re
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, ValidationError
+from abc import ABC, abstractmethod
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from src.agent.core.config import LLMConfig
 from src.agent.core.schema import SeverityLevel
@@ -20,15 +18,24 @@ logger = logging.getLogger(__name__)
 
 class LLMDiagnosticOutputSchema(BaseModel):
     """Pydantic validation schema for LLM structured output."""
+
     primary_diagnosis: str = Field(description="Leading root-cause failure mode diagnosis.")
     diagnostic_confidence: float = Field(ge=0.0, le=1.0, description="Confidence in primary diagnosis.")
     severity: SeverityLevel = Field(description="Operational severity: LOW, MEDIUM, HIGH, CRITICAL.")
-    alternative_hypotheses: List[Dict[str, Any]] = Field(default_factory=list, description="Alternative failure modes.")
-    supporting_evidence_statements: List[str] = Field(default_factory=list, description="Key statements from observations/manuals supporting diagnosis.")
-    contradicting_evidence_statements: List[str] = Field(default_factory=list, description="Conflicting observations or thresholds.")
-    missing_information: List[str] = Field(default_factory=list, description="Missing sensors, metadata, or investigation items.")
-    recommended_actions: List[Dict[str, Any]] = Field(default_factory=list, description="Recommended next actions.")
-    cited_technical_references: List[str] = Field(default_factory=list, description="Manual citations used in reasoning.")
+    alternative_hypotheses: list[dict[str, Any]] = Field(default_factory=list, description="Alternative failure modes.")
+    supporting_evidence_statements: list[str] = Field(
+        default_factory=list, description="Key statements from observations/manuals supporting diagnosis."
+    )
+    contradicting_evidence_statements: list[str] = Field(
+        default_factory=list, description="Conflicting observations or thresholds."
+    )
+    missing_information: list[str] = Field(
+        default_factory=list, description="Missing sensors, metadata, or investigation items."
+    )
+    recommended_actions: list[dict[str, Any]] = Field(default_factory=list, description="Recommended next actions.")
+    cited_technical_references: list[str] = Field(
+        default_factory=list, description="Manual citations used in reasoning."
+    )
 
 
 class BaseLLMProvider(ABC):
@@ -50,7 +57,7 @@ class MockLLMProvider(BaseLLMProvider):
     guaranteeing 100% deterministic, grounded, and schema-valid reasoning.
     """
 
-    def __init__(self, config: Optional[LLMConfig] = None):
+    def __init__(self, config: LLMConfig | None = None):
         self.config = config or LLMConfig()
 
     def generate_structured_diagnosis(
@@ -83,32 +90,40 @@ class MockLLMProvider(BaseLLMProvider):
             severity = SeverityLevel.HIGH
             supporting.append("Elevated vibration or acoustic squeal detected matching rolling element bearing fault.")
             supporting.append("Acoustic CNN or Vision model predicts bearing defect.")
-            alternatives.append({
-                "failure_mode": "rotor_unbalance",
-                "likelihood_score": 0.35,
-                "description": "Unbalance can induce secondary vibration across bearing housings."
-            })
-            alternatives.append({
-                "failure_mode": "lubrication_starvation",
-                "likelihood_score": 0.40,
-                "description": "Insufficient grease causes rapid friction and high BPFI harmonics."
-            })
-            actions.append({
-                "action_id": "ACT_01",
-                "priority": 1,
-                "action_text": "Perform acoustic ultrasound listening check on drive-end bearing housing.",
-                "rationale": "Verify periodic impact signatures before dismounting.",
-                "is_safety_critical": True,
-                "source_reference": "motor_m4500_maintenance_manual.pdf (Page 2)"
-            })
-            actions.append({
-                "action_id": "ACT_02",
-                "priority": 2,
-                "action_text": "Inspect bearing grease sample for metallic discoloration.",
-                "rationale": "Confirm physical spalling vs lubrication breakdown.",
-                "is_safety_critical": False,
-                "source_reference": "motor_m4500_maintenance_manual.pdf (Page 2)"
-            })
+            alternatives.append(
+                {
+                    "failure_mode": "rotor_unbalance",
+                    "likelihood_score": 0.35,
+                    "description": "Unbalance can induce secondary vibration across bearing housings.",
+                }
+            )
+            alternatives.append(
+                {
+                    "failure_mode": "lubrication_starvation",
+                    "likelihood_score": 0.40,
+                    "description": "Insufficient grease causes rapid friction and high BPFI harmonics.",
+                }
+            )
+            actions.append(
+                {
+                    "action_id": "ACT_01",
+                    "priority": 1,
+                    "action_text": "Perform acoustic ultrasound listening check on drive-end bearing housing.",
+                    "rationale": "Verify periodic impact signatures before dismounting.",
+                    "is_safety_critical": True,
+                    "source_reference": "motor_m4500_maintenance_manual.pdf (Page 2)",
+                }
+            )
+            actions.append(
+                {
+                    "action_id": "ACT_02",
+                    "priority": 2,
+                    "action_text": "Inspect bearing grease sample for metallic discoloration.",
+                    "rationale": "Confirm physical spalling vs lubrication breakdown.",
+                    "is_safety_critical": False,
+                    "source_reference": "motor_m4500_maintenance_manual.pdf (Page 2)",
+                }
+            )
             refs.append("motor_m4500_maintenance_manual.pdf (Page 2, Section: BEARING INSPECTION)")
 
         # 2. Hydraulic Cavitation detection
@@ -118,19 +133,23 @@ class MockLLMProvider(BaseLLMProvider):
             severity = SeverityLevel.HIGH
             supporting.append("Acoustic broadband hiss (5-15 kHz) or popping sound in pump casing.")
             supporting.append("Erratic discharge pressure fluctuations observed.")
-            alternatives.append({
-                "failure_mode": "mechanical_seal_wear",
-                "likelihood_score": 0.30,
-                "description": "Cavitation vibrations can cause secondary seal leakage."
-            })
-            actions.append({
-                "action_id": "ACT_CAV_01",
-                "priority": 1,
-                "action_text": "Verify suction line strainer is clean and isolation valve is 100% open.",
-                "rationale": "Ensure NPSHa exceeds NPSHr by at least 1.5 meters.",
-                "is_safety_critical": True,
-                "source_reference": "centrifugal_pump_cp800_troubleshooting.md (Page 1)"
-            })
+            alternatives.append(
+                {
+                    "failure_mode": "mechanical_seal_wear",
+                    "likelihood_score": 0.30,
+                    "description": "Cavitation vibrations can cause secondary seal leakage.",
+                }
+            )
+            actions.append(
+                {
+                    "action_id": "ACT_CAV_01",
+                    "priority": 1,
+                    "action_text": "Verify suction line strainer is clean and isolation valve is 100% open.",
+                    "rationale": "Ensure NPSHa exceeds NPSHr by at least 1.5 meters.",
+                    "is_safety_critical": True,
+                    "source_reference": "centrifugal_pump_cp800_troubleshooting.md (Page 1)",
+                }
+            )
             refs.append("centrifugal_pump_cp800_troubleshooting.md (Page 1, Section: CAVITATION)")
 
         # 3. Rotor Unbalance detection
@@ -139,19 +158,23 @@ class MockLLMProvider(BaseLLMProvider):
             confidence = 0.82
             severity = SeverityLevel.MEDIUM
             supporting.append("Dominant 1X running speed radial vibration component exceeds standard.")
-            alternatives.append({
-                "failure_mode": "shaft_misalignment",
-                "likelihood_score": 0.45,
-                "description": "Angular misalignment exhibits strong 2X and axial vibration."
-            })
-            actions.append({
-                "action_id": "ACT_UNB_01",
-                "priority": 1,
-                "action_text": "Perform dynamic two-plane balancing if radial vibration > 5.0 mm/s.",
-                "rationale": "Reduce 1X dynamic force on machine bearings.",
-                "is_safety_critical": False,
-                "source_reference": "motor_m4500_maintenance_manual.pdf (Page 3)"
-            })
+            alternatives.append(
+                {
+                    "failure_mode": "shaft_misalignment",
+                    "likelihood_score": 0.45,
+                    "description": "Angular misalignment exhibits strong 2X and axial vibration.",
+                }
+            )
+            actions.append(
+                {
+                    "action_id": "ACT_UNB_01",
+                    "priority": 1,
+                    "action_text": "Perform dynamic two-plane balancing if radial vibration > 5.0 mm/s.",
+                    "rationale": "Reduce 1X dynamic force on machine bearings.",
+                    "is_safety_critical": False,
+                    "source_reference": "motor_m4500_maintenance_manual.pdf (Page 3)",
+                }
+            )
             refs.append("motor_m4500_maintenance_manual.pdf (Page 3, Section: ROTOR UNBALANCE)")
 
         # 4. Check for contradiction indicators

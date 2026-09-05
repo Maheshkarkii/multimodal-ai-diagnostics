@@ -1,14 +1,13 @@
-﻿"""
+"""
 Dependency Injection Providers for FastAPI Routes.
 """
 
-from typing import Generator
 from src.api.services.file_service import FileValidationService
 from src.api.services.orchestrator import DiagnosticOrchestrator
 
 # Global singletons initialized during application lifecycle
-_orchestrator: DiagnosticOrchestrator = None
-_file_service: FileValidationService = None
+_orchestrator: DiagnosticOrchestrator | None = None
+_file_service: FileValidationService | None = None
 
 
 def init_app_services(orchestrator: DiagnosticOrchestrator, file_service: FileValidationService) -> None:

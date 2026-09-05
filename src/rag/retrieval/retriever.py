@@ -1,11 +1,11 @@
-﻿"""
+"""
 Technical Evidence Retriever with Hybrid (Vector + BM25) Search,
 Metadata Filtering, Similarity Thresholding, and Structured Context Building.
 """
 
 import logging
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from rank_bm25 import BM25Okapi
 
@@ -26,7 +26,7 @@ def preprocess_query(query: str) -> str:
     return q
 
 
-def tokenize_text(text: str) -> List[str]:
+def tokenize_text(text: str) -> list[str]:
     """Tokenize text into lowercase alphanumeric terms for BM25 matching."""
     return [w.lower() for w in re.findall(r"\b\w+\b", text) if len(w) > 1]
 
@@ -41,12 +41,12 @@ class TechnicalRetriever:
         self,
         vector_store: BaseVectorStore,
         embedding_model: BaseEmbeddingModel,
-        config: Optional[RetrievalConfig] = None,
+        config: RetrievalConfig | None = None,
     ):
         self.vector_store = vector_store
         self.embedding_model = embedding_model
         self.config = config or RetrievalConfig()
-        self.bm25_index: Optional[BM25Okapi] = None
+        self.bm25_index: BM25Okapi | None = None
         self._build_bm25_index()
 
     def _build_bm25_index(self) -> None:
@@ -67,10 +67,10 @@ class TechnicalRetriever:
     def retrieve(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        filters: Optional[Dict[str, Any]] = None,
-        similarity_threshold: Optional[float] = None,
-    ) -> List[RetrievedEvidence]:
+        top_k: int | None = None,
+        filters: dict[str, Any] | None = None,
+        similarity_threshold: float | None = None,
+    ) -> list[RetrievedEvidence]:
         """
         Retrieve relevant technical evidence chunks for a query.
         Returns empty list if no chunks meet the relevance threshold.
@@ -82,7 +82,11 @@ class TechnicalRetriever:
         k = top_k or self.config.top_k
         min_thresh = similarity_threshold if similarity_threshold is not None else self.config.similarity_threshold
 
-        if self.config.enable_hybrid and self.bm25_index is not None and len(getattr(self.vector_store, "chunks", [])) > 1:
+        if (
+            self.config.enable_hybrid
+            and self.bm25_index is not None
+            and len(getattr(self.vector_store, "chunks", [])) > 1
+        ):
             evidence = self._hybrid_retrieve(cleaned_query, k, filters, min_thresh)
         else:
             evidence = self._dense_retrieve(cleaned_query, k, filters, min_thresh)
@@ -93,9 +97,9 @@ class TechnicalRetriever:
         self,
         query: str,
         top_k: int,
-        filters: Optional[Dict[str, Any]],
-        min_threshold: Optional[float],
-    ) -> List[RetrievedEvidence]:
+        filters: dict[str, Any] | None,
+        min_threshold: float | None,
+    ) -> list[RetrievedEvidence]:
         """Perform dense embedding vector retrieval."""
         query_emb = self.embedding_model.embed_text(query)
         matches = self.vector_store.search(
@@ -105,7 +109,7 @@ class TechnicalRetriever:
             min_score=min_threshold,
         )
 
-        results: List[RetrievedEvidence] = []
+        results: list[RetrievedEvidence] = []
         for chunk, score in matches:
             results.append(
                 RetrievedEvidence(
@@ -130,16 +134,16 @@ class TechnicalRetriever:
         self,
         query: str,
         top_k: int,
-        filters: Optional[Dict[str, Any]],
-        min_threshold: Optional[float],
-    ) -> List[RetrievedEvidence]:
+        filters: dict[str, Any] | None,
+        min_threshold: float | None,
+    ) -> list[RetrievedEvidence]:
         """
         Combine Dense Vector similarity and Sparse BM25 scores via Reciprocal / Weighted Score Fusion.
         """
         if not hasattr(self.vector_store, "chunks") or not self.vector_store.chunks:
             return []
 
-        chunks: List[DocumentChunk] = self.vector_store.chunks
+        chunks: list[DocumentChunk] = self.vector_store.chunks
         query_tokens = tokenize_text(query)
 
         # 1. Compute BM25 scores (clamp non-negative)
@@ -156,7 +160,7 @@ class TechnicalRetriever:
         dense_results = {chunk.chunk_id: score for chunk, score in dense_matches}
 
         # 3. Fuse scores with filter application
-        fused_candidates: List[Tuple[DocumentChunk, float]] = []
+        fused_candidates: list[tuple[DocumentChunk, float]] = []
 
         w_dense = self.config.dense_weight
         w_sparse = self.config.sparse_weight
@@ -190,7 +194,7 @@ class TechnicalRetriever:
         fused_candidates.sort(key=lambda x: x[1], reverse=True)
         top_candidates = fused_candidates[:top_k]
 
-        results: List[RetrievedEvidence] = []
+        results: list[RetrievedEvidence] = []
         for chunk, score in top_candidates:
             results.append(
                 RetrievedEvidence(
@@ -215,8 +219,8 @@ class TechnicalRetriever:
     def build_evidence_context(
         self,
         query: str,
-        top_k: Optional[int] = None,
-        filters: Optional[Dict[str, Any]] = None,
+        top_k: int | None = None,
+        filters: dict[str, Any] | None = None,
     ) -> StructuredEvidenceContext:
         """
         Execute retrieval and assemble into a formatted StructuredEvidenceContext respecting character limits.
@@ -225,7 +229,7 @@ class TechnicalRetriever:
         max_chars = self.config.max_context_chars
         max_chunks = self.config.max_context_chunks
 
-        selected_items: List[RetrievedEvidence] = []
+        selected_items: list[RetrievedEvidence] = []
         curr_chars = 0
         truncated = False
 
@@ -252,7 +256,7 @@ class KnowledgeBaseService:
     Unified High-Level RAG Interface for Indexing and Querying.
     """
 
-    def __init__(self, config: Optional[RAGConfig] = None):
+    def __init__(self, config: RAGConfig | None = None):
         self.config = config or RAGConfig()
         self.embedding_model = create_embedding_model(self.config.embedding)
         self.vector_store = NumpyFlatVectorStore(self.config.vector_store)
@@ -265,8 +269,8 @@ class KnowledgeBaseService:
     def query(
         self,
         query_text: str,
-        top_k: Optional[int] = None,
-        filters: Optional[Dict[str, Any]] = None,
+        top_k: int | None = None,
+        filters: dict[str, Any] | None = None,
     ) -> StructuredEvidenceContext:
         """Query the knowledge base and return structured provenance-attached context."""
         return self.retriever.build_evidence_context(query=query_text, top_k=top_k, filters=filters)

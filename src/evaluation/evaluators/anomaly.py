@@ -3,15 +3,15 @@ Sensor Anomaly Detection Evaluator.
 Measures Precision, Recall, F1, False Alarm Rate, and Missed Anomaly Rate.
 """
 
-from typing import List, Tuple
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
+
 from src.evaluation.schemas import AnomalyMetrics
 
 
 def evaluate_anomaly_detector(
-    y_true_anomaly: List[bool],
-    y_pred_anomaly: List[bool],
+    y_true_anomaly: list[bool],
+    y_pred_anomaly: list[bool],
     threshold_applied: float = 0.5,
 ) -> AnomalyMetrics:
     """
@@ -25,7 +25,7 @@ def evaluate_anomaly_detector(
 
     # Anomaly is positive class (1 / True)
     p, r, f1, _ = precision_recall_fscore_support(y_t, y_p, average="binary", zero_division=0)
-    
+
     # False Alarm Rate: False Positives / Actual Normals
     actual_normals = np.sum(~y_t)
     false_positives = np.sum((~y_t) & y_p)

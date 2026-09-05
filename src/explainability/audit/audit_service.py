@@ -1,14 +1,14 @@
-﻿"""
+"""
 Audit Trail and Immutable Run Logger.
 Records complete, reproducible operational execution parameters without leaking secrets or private CoT.
 """
 
-from datetime import datetime
+import hashlib
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import hashlib
+from typing import Any
 
 from src.explainability.core.schema import AuditTrailRecord
 
@@ -32,12 +32,12 @@ class AuditService:
         case_id: str,
         system_version: str,
         report_version: str,
-        model_versions: Dict[str, str],
+        model_versions: dict[str, str],
         knowledge_base_version: str,
-        input_data_summary: Dict[str, Any],
-        available_modalities: List[str],
-        retrieval_queries: List[str],
-        retrieved_chunk_ids: List[str],
+        input_data_summary: dict[str, Any],
+        available_modalities: list[str],
+        retrieval_queries: list[str],
+        retrieved_chunk_ids: list[str],
         final_diagnosis: str,
         diagnostic_confidence: float,
         status: str,

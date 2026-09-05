@@ -1,11 +1,10 @@
-﻿"""
+"""
 Data Models and Structured Schemas for Phase 8 Explainability and Auditable Reports.
 """
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
-import time
+from typing import Any
 
 
 class EvidenceCategory(str, Enum):
@@ -18,9 +17,9 @@ class EvidenceCategory(str, Enum):
 
 
 class EvidenceQuality(str, Enum):
-    HIGH = "HIGH"        # Direct physical sensor or validated OEM manual citation
-    MEDIUM = "MEDIUM"    # High-confidence model prediction or technician symptom
-    LOW = "LOW"          # Low-confidence model inference or uncorroborated claim
+    HIGH = "HIGH"  # Direct physical sensor or validated OEM manual citation
+    MEDIUM = "MEDIUM"  # High-confidence model prediction or technician symptom
+    LOW = "LOW"  # Low-confidence model inference or uncorroborated claim
 
 
 class ClaimSupportStatus(str, Enum):
@@ -30,9 +29,9 @@ class ClaimSupportStatus(str, Enum):
 
 
 class ActionRequirement(str, Enum):
-    REQUIRED = "REQUIRED"                              # Mandatory safety-critical protocol
-    RECOMMENDED = "RECOMMENDED"                        # High-yield inspection procedure
-    OPTIONAL = "OPTIONAL"                              # Preventive optimization
+    REQUIRED = "REQUIRED"  # Mandatory safety-critical protocol
+    RECOMMENDED = "RECOMMENDED"  # High-yield inspection procedure
+    OPTIONAL = "OPTIONAL"  # Preventive optimization
 
 
 class DiagnosticSystemStatus(str, Enum):
@@ -46,24 +45,25 @@ class DiagnosticSystemStatus(str, Enum):
 @dataclass
 class AuditableEvidenceItem:
     """Standardized atomic evidence unit with stable ID and full provenance."""
-    evidence_id: str                      # e.g., "SEN-001", "DOC-002", "AUD-001"
-    category: EvidenceCategory
-    source: str                           # e.g., "Vibration Sensor", "Motor Manual (Page 2)"
-    description: str                      # Human-readable observation description
-    quality: EvidenceQuality = EvidenceQuality.MEDIUM
-    raw_value: Optional[float] = None     # e.g., 6.8
-    unit: Optional[str] = None            # e.g., "mm/s"
-    model_name: Optional[str] = None      # e.g., "AcousticCNN"
-    prediction: Optional[str] = None      # e.g., "bearing_defect_wear"
-    confidence: Optional[float] = None    # e.g., 0.88
-    document_name: Optional[str] = None   # e.g., "motor_m4500_maintenance_manual.pdf"
-    page_number: Optional[int] = None     # e.g., 2
-    section: Optional[str] = None         # e.g., "BEARING INSPECTION"
-    chunk_id: Optional[str] = None
-    visualization_artifact: Optional[str] = None  # File path to Grad-CAM heatmap or spectrogram
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    evidence_id: str  # e.g., "SEN-001", "DOC-002", "AUD-001"
+    category: EvidenceCategory
+    source: str  # e.g., "Vibration Sensor", "Motor Manual (Page 2)"
+    description: str  # Human-readable observation description
+    quality: EvidenceQuality = EvidenceQuality.MEDIUM
+    raw_value: float | None = None  # e.g., 6.8
+    unit: str | None = None  # e.g., "mm/s"
+    model_name: str | None = None  # e.g., "AcousticCNN"
+    prediction: str | None = None  # e.g., "bearing_defect_wear"
+    confidence: float | None = None  # e.g., 0.88
+    document_name: str | None = None  # e.g., "motor_m4500_maintenance_manual.pdf"
+    page_number: int | None = None  # e.g., 2
+    section: str | None = None  # e.g., "BEARING INSPECTION"
+    chunk_id: str | None = None
+    visualization_artifact: str | None = None  # File path to Grad-CAM heatmap or spectrogram
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["category"] = self.category.value
         d["quality"] = self.quality.value
@@ -73,14 +73,15 @@ class AuditableEvidenceItem:
 @dataclass
 class ClaimEvidenceMapping:
     """Explicit bidirectional connection between a diagnostic claim and supporting evidence."""
+
     claim_id: str
     claim_statement: str
-    supporting_evidence_ids: List[str] = field(default_factory=list)
-    contradicting_evidence_ids: List[str] = field(default_factory=list)
+    supporting_evidence_ids: list[str] = field(default_factory=list)
+    contradicting_evidence_ids: list[str] = field(default_factory=list)
     status: ClaimSupportStatus = ClaimSupportStatus.SUPPORTED
     rationale: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["status"] = self.status.value
         return d
@@ -89,32 +90,34 @@ class ClaimEvidenceMapping:
 @dataclass
 class ConfidenceDecomposition:
     """Multifactorial explanatory decomposition of overall diagnostic confidence."""
-    overall_confidence: float             # e.g., 0.86 (86.0%)
-    multimodal_agreement: str             # "HIGH", "MEDIUM", "LOW"
-    sensor_evidence_strength: str         # "HIGH", "MEDIUM", "LOW", "UNAVAILABLE"
-    acoustic_evidence_strength: str       # "HIGH", "MEDIUM", "LOW", "UNAVAILABLE"
-    visual_evidence_strength: str         # "HIGH", "MEDIUM", "LOW", "UNAVAILABLE"
-    technical_knowledge_match: str        # "HIGH", "MEDIUM", "LOW", "UNAVAILABLE"
-    contradiction_penalty: float = 0.0    # Confidence reduction amount from detected conflicts
+
+    overall_confidence: float  # e.g., 0.86 (86.0%)
+    multimodal_agreement: str  # "HIGH", "MEDIUM", "LOW"
+    sensor_evidence_strength: str  # "HIGH", "MEDIUM", "LOW", "UNAVAILABLE"
+    acoustic_evidence_strength: str  # "HIGH", "MEDIUM", "LOW", "UNAVAILABLE"
+    visual_evidence_strength: str  # "HIGH", "MEDIUM", "LOW", "UNAVAILABLE"
+    technical_knowledge_match: str  # "HIGH", "MEDIUM", "LOW", "UNAVAILABLE"
+    contradiction_penalty: float = 0.0  # Confidence reduction amount from detected conflicts
     rationale_summary: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass
 class TraceableRecommendedAction:
     """Actionable recommendation with explicit requirement level and technical citation."""
-    action_id: str                        # e.g., "ACT-001"
-    priority: int                         # 1 (Immediate) to 5 (Long-term)
+
+    action_id: str  # e.g., "ACT-001"
+    priority: int  # 1 (Immediate) to 5 (Long-term)
     requirement: ActionRequirement
     action_text: str
     rationale: str
-    justifying_evidence_ids: List[str] = field(default_factory=list)
-    source_reference: Optional[str] = None
+    justifying_evidence_ids: list[str] = field(default_factory=list)
+    source_reference: str | None = None
     is_safety_critical: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["requirement"] = self.requirement.value
         return d
@@ -123,64 +126,67 @@ class TraceableRecommendedAction:
 @dataclass
 class UncertaintyProfile:
     """Transparent cataloging of known facts, missing signals, and uncertainty reduction steps."""
-    confirmed_facts: List[str] = field(default_factory=list)
-    unknown_parameters: List[str] = field(default_factory=list)
-    recommended_investigation_steps: List[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    confirmed_facts: list[str] = field(default_factory=list)
+    unknown_parameters: list[str] = field(default_factory=list)
+    recommended_investigation_steps: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass
 class AuditTrailRecord:
     """Immutable operational record of an entire diagnostic execution for regulatory audit."""
+
     case_id: str
     timestamp: str
     system_version: str
     report_version: str
-    model_versions: Dict[str, str]
+    model_versions: dict[str, str]
     knowledge_base_version: str
-    input_hashes: Dict[str, str]
-    available_modalities: List[str]
-    retrieval_queries: List[str]
-    retrieved_chunk_ids: List[str]
+    input_hashes: dict[str, str]
+    available_modalities: list[str]
+    retrieval_queries: list[str]
+    retrieved_chunk_ids: list[str]
     final_diagnosis: str
     diagnostic_confidence: float
     status: str
     execution_duration_ms: float
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass
 class AuditableDiagnosticReport:
     """Master structured and auditable diagnostic report."""
+
     case_id: str
     timestamp: str
     report_version: str
     system_status: DiagnosticSystemStatus
-    equipment_info: Dict[str, Any]
+    equipment_info: dict[str, Any]
     problem_summary: str
     primary_diagnosis: str
     severity: str
     confidence_decomposition: ConfidenceDecomposition
-    evidence_inventory: List[AuditableEvidenceItem]
-    claim_mappings: List[ClaimEvidenceMapping]
-    alternative_hypotheses: List[Dict[str, Any]]
-    recommended_actions: List[TraceableRecommendedAction]
+    evidence_inventory: list[AuditableEvidenceItem]
+    claim_mappings: list[ClaimEvidenceMapping]
+    alternative_hypotheses: list[dict[str, Any]]
+    recommended_actions: list[TraceableRecommendedAction]
     uncertainty_profile: UncertaintyProfile
-    unsupported_claims: List[str]
+    unsupported_claims: list[str]
     audit_record: AuditTrailRecord
-    limitations: List[str] = field(
+    limitations: list[str] = field(
         default_factory=lambda: [
             "This automated diagnostic report is an AI-assisted decision support tool, not a certified structural engineer.",
             "Feature attribution heatmaps and spectrogram overlays reflect model attention, not physical causal proof.",
-            "All physical maintenance interventions must adhere strictly to plant Lockout-Tagout (LOTO) procedures and OEM manuals."
+            "All physical maintenance interventions must adhere strictly to plant Lockout-Tagout (LOTO) procedures and OEM manuals.",
         ]
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["system_status"] = self.system_status.value
         d["confidence_decomposition"] = self.confidence_decomposition.to_dict()
@@ -214,8 +220,8 @@ class AuditableDiagnosticReport:
             f"- **Confidence Rationale**: {self.confidence_decomposition.rationale_summary}",
             "",
             "### Confidence Contributing Factors:",
-            f"| Factor | Assessment | Description |",
-            f"| :--- | :---: | :--- |",
+            "| Factor | Assessment | Description |",
+            "| :--- | :---: | :--- |",
             f"| **Multimodal Agreement** | `{self.confidence_decomposition.multimodal_agreement}` | Cross-modality prediction consistency |",
             f"| **Sensor Telemetry** | `{self.confidence_decomposition.sensor_evidence_strength}` | Physical telemetry threshold evaluation |",
             f"| **Acoustic Audio** | `{self.confidence_decomposition.acoustic_evidence_strength}` | Harmonic & acoustic spectrum features |",
@@ -229,14 +235,24 @@ class AuditableDiagnosticReport:
 
         for ev in self.evidence_inventory:
             val_str = f" ({ev.raw_value} {ev.unit})" if ev.raw_value is not None else ""
-            lines.append(f"| **[{ev.evidence_id}]** | `{ev.category.value}` | `{ev.quality.value}` | {ev.source} | {ev.description}{val_str} |")
+            lines.append(
+                f"| **[{ev.evidence_id}]** | `{ev.category.value}` | `{ev.quality.value}` | {ev.source} | {ev.description}{val_str} |"
+            )
 
         lines.append("\n## 4. Claim-to-Evidence Audit Trace")
         if self.claim_mappings:
             for cm in self.claim_mappings:
-                sup_str = ", ".join([f"`[{e}]`" for e in cm.supporting_evidence_ids]) if cm.supporting_evidence_ids else "*None*"
-                con_str = ", ".join([f"`[{e}]`" for e in cm.contradicting_evidence_ids]) if cm.contradicting_evidence_ids else "*None*"
-                lines.append(f"### Claim: \"{cm.claim_statement}\"")
+                sup_str = (
+                    ", ".join([f"`[{e}]`" for e in cm.supporting_evidence_ids])
+                    if cm.supporting_evidence_ids
+                    else "*None*"
+                )
+                con_str = (
+                    ", ".join([f"`[{e}]`" for e in cm.contradicting_evidence_ids])
+                    if cm.contradicting_evidence_ids
+                    else "*None*"
+                )
+                lines.append(f'### Claim: "{cm.claim_statement}"')
                 lines.append(f"- **Verification Status**: `{cm.status.value}`")
                 lines.append(f"- **Supporting Evidence**: {sup_str}")
                 lines.append(f"- **Contradicting Evidence**: {con_str}")
@@ -249,7 +265,9 @@ class AuditableDiagnosticReport:
         lines.append("## 5. Alternative Competing Hypotheses")
         if self.alternative_hypotheses:
             for idx, hyp in enumerate(self.alternative_hypotheses, start=1):
-                prob = f" (Likelihood: {hyp.get('likelihood_score', 0.0)*100:.1f}%)" if 'likelihood_score' in hyp else ""
+                prob = (
+                    f" (Likelihood: {hyp.get('likelihood_score', 0.0) * 100:.1f}%)" if "likelihood_score" in hyp else ""
+                )
                 lines.append(f"{idx}. **{hyp.get('failure_mode', 'Unknown')}**{prob}: {hyp.get('description', '')}")
         else:
             lines.append("- *No alternative hypotheses considered.*")
@@ -260,8 +278,14 @@ class AuditableDiagnosticReport:
                 crit = "[SAFETY CRITICAL] " if act.is_safety_critical else ""
                 req_badge = f"`[{act.requirement.value}]` "
                 ref = f" *(Ref: {act.source_reference})*" if act.source_reference else ""
-                ev_ids = f" *(Evidence: {', '.join([f'[{e}]' for e in act.justifying_evidence_ids])})*" if act.justifying_evidence_ids else ""
-                lines.append(f"1. {req_badge}**{crit}{act.action_text}**{ref}{ev_ids}\n   - *Technical Rationale*: {act.rationale}")
+                ev_ids = (
+                    f" *(Evidence: {', '.join([f'[{e}]' for e in act.justifying_evidence_ids])})*"
+                    if act.justifying_evidence_ids
+                    else ""
+                )
+                lines.append(
+                    f"1. {req_badge}**{crit}{act.action_text}**{ref}{ev_ids}\n   - *Technical Rationale*: {act.rationale}"
+                )
         else:
             lines.append("- *No specific actions prescribed.*")
 

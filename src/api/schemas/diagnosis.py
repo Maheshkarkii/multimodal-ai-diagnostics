@@ -2,7 +2,8 @@
 Pydantic Request & Response Schemas for Phase 9 FastAPI Service.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -19,7 +20,7 @@ class HealthResponse(BaseModel):
 class ReadinessResponse(BaseModel):
     ready: bool
     status: str
-    components: Dict[str, bool] = Field(
+    components: dict[str, bool] = Field(
         json_schema_extra={
             "example": {
                 "vision_service": True,
@@ -37,25 +38,43 @@ class ReadinessResponse(BaseModel):
 
 # --- Sensor & Telemetry Input Schemas ---
 class SensorTelemetryInput(BaseModel):
-    temperature: Optional[float] = Field(None, description="Bearing or casing temperature", json_schema_extra={"example": 84.0})
+    temperature: float | None = Field(
+        None, description="Bearing or casing temperature", json_schema_extra={"example": 84.0}
+    )
     temperature_unit: str = Field("degC", description="Temperature unit (degC or degF)")
-    vibration: Optional[float] = Field(None, description="RMS vibration velocity", json_schema_extra={"example": 6.8})
+    vibration: float | None = Field(None, description="RMS vibration velocity", json_schema_extra={"example": 6.8})
     vibration_unit: str = Field("mm/s", description="Vibration unit (mm/s or in/s)")
-    rpm: Optional[float] = Field(None, description="Operating shaft rotational speed", json_schema_extra={"example": 1480.0})
-    current: Optional[float] = Field(None, description="Motor operating current", json_schema_extra={"example": 8.4})
+    rpm: float | None = Field(
+        None, description="Operating shaft rotational speed", json_schema_extra={"example": 1480.0}
+    )
+    current: float | None = Field(None, description="Motor operating current", json_schema_extra={"example": 8.4})
     current_unit: str = Field("A", description="Current unit")
-    pressure: Optional[float] = Field(None, description="Suction or discharge pressure", json_schema_extra={"example": 1.2})
+    pressure: float | None = Field(
+        None, description="Suction or discharge pressure", json_schema_extra={"example": 1.2}
+    )
     pressure_unit: str = Field("bar", description="Pressure unit")
-    custom_parameters: Dict[str, float] = Field(default_factory=dict, description="Additional arbitrary sensor readings")
+    custom_parameters: dict[str, float] = Field(
+        default_factory=dict, description="Additional arbitrary sensor readings"
+    )
 
 
 # --- Equipment Metadata ---
 class EquipmentMetadataInput(BaseModel):
-    equipment_type: str = Field("motor", description="Equipment classification (e.g. motor, pump, gearbox)", json_schema_extra={"example": "motor"})
-    manufacturer: Optional[str] = Field(None, description="Equipment manufacturer", json_schema_extra={"example": "Siemens"})
-    model: Optional[str] = Field(None, description="Equipment model identifier", json_schema_extra={"example": "M-4500"})
-    serial_number: Optional[str] = Field(None, description="Asset serial number", json_schema_extra={"example": "SN-94821"})
-    operating_mode: Optional[str] = Field("continuous", description="Duty cycle mode")
+    equipment_type: str = Field(
+        default="motor",
+        description="Equipment classification (e.g. motor, pump, gearbox)",
+        json_schema_extra={"example": "motor"},
+    )
+    manufacturer: str | None = Field(
+        default=None, description="Equipment manufacturer", json_schema_extra={"example": "Siemens"}
+    )
+    model: str | None = Field(
+        default=None, description="Equipment model identifier", json_schema_extra={"example": "M-4500"}
+    )
+    serial_number: str | None = Field(
+        default=None, description="Asset serial number", json_schema_extra={"example": "SN-94821"}
+    )
+    operating_mode: str | None = Field(default="continuous", description="Duty cycle mode")
 
 
 # --- Evidence & Action Output Schemas ---
@@ -65,11 +84,11 @@ class EvidenceItemResponse(BaseModel):
     source: str
     description: str
     quality: str
-    raw_value: Optional[float] = None
-    unit: Optional[str] = None
-    document_name: Optional[str] = None
-    page_number: Optional[int] = None
-    section: Optional[str] = None
+    raw_value: float | None = None
+    unit: str | None = None
+    document_name: str | None = None
+    page_number: int | None = None
+    section: str | None = None
 
 
 class RecommendedActionResponse(BaseModel):
@@ -78,18 +97,18 @@ class RecommendedActionResponse(BaseModel):
     requirement: str
     action_text: str
     rationale: str
-    source_reference: Optional[str] = None
+    source_reference: str | None = None
     is_safety_critical: bool
-    justifying_evidence_ids: List[str] = Field(default_factory=list)
+    justifying_evidence_ids: list[str] = Field(default_factory=list)
 
 
 class ClaimAuditMappingResponse(BaseModel):
     claim_id: str
     claim_statement: str
     status: str
-    supporting_evidence_ids: List[str]
-    contradicting_evidence_ids: List[str]
-    rationale: Optional[str] = None
+    supporting_evidence_ids: list[str]
+    contradicting_evidence_ids: list[str]
+    rationale: str | None = None
 
 
 class ConfidenceDecompositionResponse(BaseModel):
@@ -116,17 +135,17 @@ class DiagnosisResponse(BaseModel):
     request_id: str
     timestamp: str
     status: str
-    equipment: Dict[str, Any]
+    equipment: dict[str, Any]
     problem_summary: str
-    available_modalities: List[str]
+    available_modalities: list[str]
     diagnosis: PrimaryDiagnosisResponse
-    evidence_inventory: List[EvidenceItemResponse]
-    claim_mappings: List[ClaimAuditMappingResponse]
-    alternative_hypotheses: List[Dict[str, Any]]
-    recommended_actions: List[RecommendedActionResponse]
-    uncertainty_profile: Dict[str, Any]
-    unsupported_claims: List[str]
-    audit_summary: Dict[str, Any]
+    evidence_inventory: list[EvidenceItemResponse]
+    claim_mappings: list[ClaimAuditMappingResponse]
+    alternative_hypotheses: list[dict[str, Any]]
+    recommended_actions: list[RecommendedActionResponse]
+    uncertainty_profile: dict[str, Any]
+    unsupported_claims: list[str]
+    audit_summary: dict[str, Any]
     markdown_report: str
 
 
@@ -134,6 +153,6 @@ class DiagnosisResponse(BaseModel):
 class ErrorResponse(BaseModel):
     error_code: str
     message: str
-    details: Optional[Dict[str, Any]] = None
-    request_id: Optional[str] = None
+    details: dict[str, Any] | None = None
+    request_id: str | None = None
     timestamp: str

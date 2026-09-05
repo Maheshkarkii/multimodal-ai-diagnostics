@@ -1,9 +1,10 @@
-﻿"""
+"""
 Device resolution and environment setup utilities.
 """
 
 import logging
 import random
+
 import numpy as np
 import torch
 

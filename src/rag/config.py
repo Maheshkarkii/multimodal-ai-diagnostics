@@ -1,17 +1,19 @@
-﻿"""
+"""
 RAG Configuration dataclasses for Document Ingestion, Embedding, Storage, and Retrieval.
 """
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
+
 import yaml
 
 
 @dataclass
 class DocumentIngestionConfig:
     """Document parsing and loading configurations."""
-    supported_extensions: List[str] = field(default_factory=lambda: [".pdf", ".txt", ".md", ".docx"])
+
+    supported_extensions: list[str] = field(default_factory=lambda: [".pdf", ".txt", ".md", ".docx"])
     detect_scanned_pdf: bool = True
     min_page_chars_threshold: int = 40
     clean_whitespace: bool = True
@@ -21,6 +23,7 @@ class DocumentIngestionConfig:
 @dataclass
 class ChunkingConfig:
     """Deliberate chunking configuration preserving structure and provenance."""
+
     strategy: str = "hierarchical"  # "hierarchical", "fixed_window", "sentence"
     chunk_size: int = 500  # Target characters per chunk
     chunk_overlap: int = 100  # Character overlap
@@ -32,6 +35,7 @@ class ChunkingConfig:
 @dataclass
 class EmbeddingConfig:
     """Embedding model configuration."""
+
     model_type: str = "sentence_transformer"  # "sentence_transformer", "deterministic", "tfidf"
     model_name_or_path: str = "sentence-transformers/all-MiniLM-L6-v2"
     embedding_dim: int = 384
@@ -43,6 +47,7 @@ class EmbeddingConfig:
 @dataclass
 class VectorStoreConfig:
     """Vector database storage configuration."""
+
     store_type: str = "numpy_flat"  # "numpy_flat", "chroma", "faiss"
     persist_directory: str = "data/rag/vector_store"
     collection_name: str = "equipment_manuals"
@@ -52,8 +57,9 @@ class VectorStoreConfig:
 @dataclass
 class RetrievalConfig:
     """Retrieval parameters and constraints."""
+
     top_k: int = 5
-    similarity_threshold: Optional[float] = 0.20  # Minimum similarity score required
+    similarity_threshold: float | None = 0.20  # Minimum similarity score required
     enable_hybrid: bool = True  # Combine dense embedding search with BM25 keyword search
     dense_weight: float = 0.65  # Weight for vector similarity in hybrid mode
     sparse_weight: float = 0.35  # Weight for BM25 score in hybrid mode
@@ -64,6 +70,7 @@ class RetrievalConfig:
 @dataclass
 class RAGConfig:
     """Master RAG pipeline configuration."""
+
     system_name: str = "technical_knowledge_rag"
     documents_dir: str = "data/rag/documents"
     manifest_path: str = "data/rag/vector_store/documents_manifest.json"
@@ -74,19 +81,19 @@ class RAGConfig:
     retrieval: RetrievalConfig = field(default_factory=RetrievalConfig)
 
     @classmethod
-    def from_yaml(cls, yaml_path: Union[str, Path]) -> "RAGConfig":
+    def from_yaml(cls, yaml_path: str | Path) -> "RAGConfig":
         """Load RAG config from YAML file."""
         yaml_path = Path(yaml_path)
         if not yaml_path.exists():
             raise FileNotFoundError(f"Configuration file not found: {yaml_path}")
 
-        with open(yaml_path, "r", encoding="utf-8") as f:
+        with open(yaml_path, encoding="utf-8") as f:
             raw_dict = yaml.safe_load(f) or {}
 
         return cls.from_dict(raw_dict)
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]) -> "RAGConfig":
+    def from_dict(cls, d: dict[str, Any]) -> "RAGConfig":
         """Construct RAGConfig from nested dictionary."""
         return cls(
             system_name=d.get("system_name", "technical_knowledge_rag"),
@@ -99,7 +106,7 @@ class RAGConfig:
             retrieval=RetrievalConfig(**d.get("retrieval", {})),
         )
 
-    def to_yaml(self, save_path: Union[str, Path]) -> None:
+    def to_yaml(self, save_path: str | Path) -> None:
         """Serialize configuration to a YAML file."""
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
