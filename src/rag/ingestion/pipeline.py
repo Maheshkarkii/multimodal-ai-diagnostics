@@ -33,7 +33,9 @@ class DocumentIngestionPipeline:
         if self.manifest_path and self.manifest_path.exists():
             try:
                 with open(self.manifest_path, encoding="utf-8") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        return data
             except Exception as e:
                 logger.warning(f"Could not load manifest from {self.manifest_path}: {e}")
         return {}
