@@ -7,9 +7,9 @@ from pathlib import Path
 
 import torch
 
-from field_engineer.core.config import DatasetConfig, ExperimentConfig, ModelConfig, SystemConfig, TrainingConfig
-from field_engineer.core.device import resolve_device, set_seed
-from field_engineer.core.logging import setup_logger
+from src.field_engineer.core.config import DatasetConfig, ExperimentConfig, ModelConfig, SystemConfig, TrainingConfig
+from src.field_engineer.core.device import resolve_device, set_seed
+from src.field_engineer.core.logging import setup_logger
 
 
 def test_default_config():

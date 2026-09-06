@@ -51,7 +51,7 @@ class DeterministicDenseEmbeddingModel(BaseEmbeddingModel):
         return self._dim
 
     def embed_text(self, text: str) -> np.ndarray:
-        return self.embed_documents([text])[0]
+        return np.asarray(self.embed_documents([text])[0])
 
     def embed_documents(self, texts: list[str]) -> np.ndarray:
         vectors = np.zeros((len(texts), self._dim), dtype=np.float32)
@@ -122,7 +122,7 @@ class SentenceTransformerEmbeddingModel(BaseEmbeddingModel):
         return self._dim
 
     def embed_text(self, text: str) -> np.ndarray:
-        return self.embed_documents([text])[0]
+        return np.asarray(self.embed_documents([text])[0])
 
     def embed_documents(self, texts: list[str]) -> np.ndarray:
         if self.model is not None:

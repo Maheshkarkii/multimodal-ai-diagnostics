@@ -37,8 +37,13 @@ coverage.xml
 experiments/outputs/
 logs/
 *.log
+reports/audit/audit_CASE-*.json
+reports/diagnostics/audit_report_CASE-*.md
+reports/explainability/
 data/temp_uploads/*
 !data/temp_uploads/.gitkeep
+.venv*/
+uv.lock
 
 # Heavy Model Checkpoints (Persist externally or via volume mounts)
 models/*.pth
