@@ -8,7 +8,12 @@ import {
   BookOpen, 
   Activity, 
   ArrowLeft,
-  FileCheck
+  FileCheck,
+  ShieldCheck,
+  Sparkles,
+  Layers,
+  Clock,
+  ArrowRight
 } from "lucide-react";
 import { DiagnosisResponse } from "@/lib/types/diagnosis";
 
@@ -32,17 +37,23 @@ export default function DiagnosticResultPage() {
 
   if (!diagnosisData) {
     return (
-      <div className="py-12 text-center space-y-4">
-        <h2 className="text-xl font-bold text-industrial-800">Case Report Not Found in Session</h2>
-        <p className="text-sm text-industrial-500">
-          This report may have expired or was run in another browser window.
+      <div className="py-20 text-center space-y-4 max-w-md mx-auto">
+        <div className="w-12 h-12 rounded-full bg-white border border-black/[0.06] flex items-center justify-center mx-auto text-[#1d1d1f] shadow-xs">
+          <Activity className="w-6 h-6" />
+        </div>
+        <h2 className="text-xl font-semibold tracking-tight text-[#1d1d1f]">Report Not Available</h2>
+        <p className="text-xs text-[#6e6e73] leading-relaxed">
+          This session report has concluded or was initialized in another window.
         </p>
-        <Link
-          href="/cases/new"
-          className="inline-block bg-brand-blue text-white px-4 py-2 rounded-lg font-semibold text-sm"
-        >
-          Create New Diagnostic Case
-        </Link>
+        <div className="pt-2">
+          <Link
+            href="/cases/new"
+            className="inline-flex items-center space-x-2 bg-[#1d1d1f] hover:bg-black text-white px-5 py-2.5 rounded-full font-medium text-xs shadow-sm transition-all"
+          >
+            <span>Start New Case</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
     );
   }
@@ -51,77 +62,84 @@ export default function DiagnosticResultPage() {
   const decomp = diag.confidence_decomposition;
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-4xl mx-auto">
       {/* Header & Back Link */}
       <div className="flex items-center justify-between">
         <Link
           href="/"
-          className="text-sm font-semibold text-industrial-600 hover:text-industrial-900 flex items-center space-x-1"
+          className="text-xs font-medium text-[#6e6e73] hover:text-[#1d1d1f] transition-colors flex items-center space-x-1.5 px-3 py-1.5 rounded-full hover:bg-black/[0.03]"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Dashboard</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Dashboard</span>
         </Link>
-        <div className="text-xs text-industrial-400">
-          Case ID: <span className="font-mono text-industrial-700">{diagnosisData.case_id}</span>
+        <div className="text-[11px] text-[#86868b] flex items-center space-x-1.5">
+          <span>Case:</span>
+          <span className="font-mono font-medium text-[#1d1d1f] bg-black/[0.04] px-2 py-0.5 rounded-full border border-black/[0.04]">
+            {diagnosisData.case_id}
+          </span>
         </div>
       </div>
 
       {/* Primary Diagnosis Hero Banner */}
-      <div className="bg-white rounded-2xl border border-industrial-200 p-8 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-industrial-400">
+      <div className="bg-white rounded-[28px] border border-black/[0.06] p-8 sm:p-10 shadow-[0_4px_24px_rgba(0,0,0,0.03)] space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-black/[0.04]">
+          <div className="space-y-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#86868b]">
               Primary Diagnostic Assessment
             </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-industrial-900 mt-1 capitalize">
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#1d1d1f] capitalize">
               {diag.primary_diagnosis.replace(/_/g, " ")}
             </h1>
           </div>
-          <div className="flex items-center space-x-3">
-            <div className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+          <div className="flex items-center space-x-2.5 self-start sm:self-center">
+            <span className="px-3.5 py-1 rounded-full text-xs font-medium bg-[#f5f5f7] text-[#1d1d1f] border border-black/[0.06]">
               Severity: {diag.severity}
-            </div>
-            <div className="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200">
-              Confidence: {(diag.diagnostic_confidence * 100).toFixed(1)}%
-            </div>
+            </span>
+            <span className="px-3.5 py-1 rounded-full text-xs font-medium bg-[#1d1d1f] text-white shadow-xs">
+              {(diag.diagnostic_confidence * 100).toFixed(1)}% Confidence
+            </span>
           </div>
         </div>
 
-        <div className="p-4 bg-industrial-50 rounded-xl border border-industrial-100 text-sm text-industrial-800 leading-relaxed">
-          <span className="font-semibold">Problem Summary: </span>
-          {diagnosisData.problem_summary}
+        <div className="p-5 bg-[#f5f5f7] rounded-[18px] border border-black/[0.04] text-sm text-[#1d1d1f] leading-relaxed">
+          <span className="font-semibold">Symptom Summary: </span>
+          <span className="text-[#515154]">{diagnosisData.problem_summary}</span>
         </div>
       </div>
 
       {/* Confidence Decomposition Breakdown */}
       {decomp && (
-        <div className="bg-white rounded-xl border border-industrial-200 p-6 shadow-sm space-y-4">
-          <h2 className="text-base font-bold text-industrial-900 flex items-center space-x-2">
-            <Activity className="w-4 h-4 text-brand-blue" />
-            <span>Confidence Decomposition & Subsystem Attribution</span>
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div className="p-3 bg-industrial-50 rounded-lg border border-industrial-100">
-              <div className="text-industrial-500">Modality Agreement</div>
-              <div className="text-sm font-bold text-industrial-900 mt-1 uppercase">
+        <div className="bg-white rounded-[24px] border border-black/[0.06] p-6 sm:p-8 shadow-[0_2px_14px_rgba(0,0,0,0.02)] space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-black/[0.04]">
+            <h2 className="text-base font-semibold text-[#1d1d1f] flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-[#1d1d1f]" />
+              <span>Confidence Decomposition & Subsystem Attribution</span>
+            </h2>
+            <span className="text-[11px] text-[#86868b]">Cross-modal verification</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-xs">
+            <div className="p-4 bg-[#f5f5f7] rounded-[16px] border border-black/[0.04] space-y-1">
+              <div className="text-[#86868b] text-[11px]">Modality Agreement</div>
+              <div className="text-sm font-semibold text-[#1d1d1f] uppercase tracking-wide">
                 {decomp.multimodal_agreement}
               </div>
             </div>
-            <div className="p-3 bg-industrial-50 rounded-lg border border-industrial-100">
-              <div className="text-industrial-500">Sensor Evidence</div>
-              <div className="text-sm font-bold text-industrial-900 mt-1 uppercase">
+            <div className="p-4 bg-[#f5f5f7] rounded-[16px] border border-black/[0.04] space-y-1">
+              <div className="text-[#86868b] text-[11px]">Sensor Evidence</div>
+              <div className="text-sm font-semibold text-[#1d1d1f] uppercase tracking-wide">
                 {decomp.sensor_evidence_strength}
               </div>
             </div>
-            <div className="p-3 bg-industrial-50 rounded-lg border border-industrial-100">
-              <div className="text-industrial-500">Acoustic Harmonics</div>
-              <div className="text-sm font-bold text-industrial-900 mt-1 uppercase">
+            <div className="p-4 bg-[#f5f5f7] rounded-[16px] border border-black/[0.04] space-y-1">
+              <div className="text-[#86868b] text-[11px]">Acoustic Harmonics</div>
+              <div className="text-sm font-semibold text-[#1d1d1f] uppercase tracking-wide">
                 {decomp.acoustic_evidence_strength}
               </div>
             </div>
-            <div className="p-3 bg-industrial-50 rounded-lg border border-industrial-100">
-              <div className="text-industrial-500">Knowledge Base Match</div>
-              <div className="text-sm font-bold text-industrial-900 mt-1 uppercase">
+            <div className="p-4 bg-[#f5f5f7] rounded-[16px] border border-black/[0.04] space-y-1">
+              <div className="text-[#86868b] text-[11px]">Knowledge Base Match</div>
+              <div className="text-sm font-semibold text-[#1d1d1f] uppercase tracking-wide">
                 {decomp.technical_knowledge_match}
               </div>
             </div>
@@ -130,40 +148,44 @@ export default function DiagnosticResultPage() {
       )}
 
       {/* Evidence Section */}
-      <div className="bg-white rounded-xl border border-industrial-200 p-6 shadow-sm space-y-4">
-        <h2 className="text-base font-bold text-industrial-900 flex items-center space-x-2">
-          <BookOpen className="w-4 h-4 text-brand-blue" />
-          <span>Auditable Evidence Trail</span>
-        </h2>
+      <div className="bg-white rounded-[24px] border border-black/[0.06] p-6 sm:p-8 shadow-[0_2px_14px_rgba(0,0,0,0.02)] space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-black/[0.04]">
+          <h2 className="text-base font-semibold text-[#1d1d1f] flex items-center space-x-2">
+            <BookOpen className="w-4 h-4 text-[#1d1d1f]" />
+            <span>Auditable Evidence Trail</span>
+          </h2>
+          <span className="text-[11px] text-[#86868b]">Immutable citations</span>
+        </div>
+
         <div className="space-y-3">
           {diagnosisData.evidence_inventory.map((ev) => (
             <div
               key={ev.evidence_id}
-              className="p-4 rounded-xl border border-industrial-100 bg-industrial-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm"
+              className="p-4 rounded-[18px] border border-black/[0.04] bg-[#f5f5f7] hover:bg-[#fafafc] transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm"
             >
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center space-x-2">
-                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-industrial-200 text-industrial-800">
+                  <span className="font-mono text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white text-[#1d1d1f] border border-black/[0.06] shadow-2xs">
                     {ev.evidence_id}
                   </span>
-                  <span className="text-xs font-semibold uppercase text-brand-blue">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#6e6e73]">
                     {ev.category}
                   </span>
                   {ev.is_verified_citation && (
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] bg-[#34c759]/10 text-[#34c759] border border-[#34c759]/20 font-medium px-2 py-0.5 rounded-full">
                       Verified Citation
                     </span>
                   )}
                 </div>
-                <p className="text-industrial-800 text-xs sm:text-sm">{ev.description}</p>
+                <p className="text-[#1d1d1f] text-xs sm:text-[13px] leading-relaxed">{ev.description}</p>
                 {ev.document_reference && (
-                  <p className="text-xs text-industrial-500 font-medium">
-                    Reference: {ev.document_reference} (p. {ev.page_number || "N/A"})
+                  <p className="text-[11px] text-[#86868b]">
+                    Reference: <span className="text-[#515154] font-medium">{ev.document_reference}</span> (p. {ev.page_number || "N/A"})
                   </p>
                 )}
               </div>
-              <div className="text-xs text-industrial-500 font-semibold self-end sm:self-center">
-                Confidence: {(ev.confidence * 100).toFixed(0)}%
+              <div className="text-xs text-[#6e6e73] font-medium self-end sm:self-center bg-white px-2.5 py-1 rounded-full border border-black/[0.04] shadow-2xs">
+                {(ev.confidence * 100).toFixed(0)}% Confidence
               </div>
             </div>
           ))}
@@ -171,27 +193,31 @@ export default function DiagnosticResultPage() {
       </div>
 
       {/* Recommended Actions */}
-      <div className="bg-white rounded-xl border border-industrial-200 p-6 shadow-sm space-y-4">
-        <h2 className="text-base font-bold text-industrial-900 flex items-center space-x-2">
-          <FileCheck className="w-4 h-4 text-brand-blue" />
-          <span>Recommended Corrective Actions</span>
-        </h2>
+      <div className="bg-white rounded-[24px] border border-black/[0.06] p-6 sm:p-8 shadow-[0_2px_14px_rgba(0,0,0,0.02)] space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-black/[0.04]">
+          <h2 className="text-base font-semibold text-[#1d1d1f] flex items-center space-x-2">
+            <FileCheck className="w-4 h-4 text-[#1d1d1f]" />
+            <span>Recommended Corrective Actions</span>
+          </h2>
+          <span className="text-[11px] text-[#86868b]">SOP procedures</span>
+        </div>
+
         <div className="space-y-3">
           {diagnosisData.recommended_actions.map((act) => (
             <div
               key={act.action_id}
-              className="p-4 rounded-xl border border-industrial-200 bg-white space-y-2 text-sm"
+              className="p-5 rounded-[18px] border border-black/[0.06] bg-[#fbfbfd] space-y-2 text-sm"
             >
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-industrial-900">{act.description}</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-amber-50 text-amber-800 border border-amber-200">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-semibold text-[#1d1d1f]">{act.description}</span>
+                <span className="text-[10px] font-medium px-2.5 py-0.5 rounded-full uppercase bg-[#f5f5f7] text-[#6e6e73] border border-black/[0.06] whitespace-nowrap">
                   {act.action_type.replace(/_/g, " ")}
                 </span>
               </div>
-              <p className="text-xs text-industrial-600">Target Component: {act.target_component}</p>
+              <p className="text-xs text-[#6e6e73]">Target Component: <span className="text-[#1d1d1f] font-medium">{act.target_component}</span></p>
               {act.citation && (
-                <div className="text-[10px] text-industrial-400">
-                  Standard SOP Citation: {act.citation}
+                <div className="text-[11px] text-[#86868b] pt-1">
+                  Standard SOP Citation: <span className="font-mono text-[#515154]">{act.citation}</span>
                 </div>
               )}
             </div>
@@ -200,34 +226,35 @@ export default function DiagnosticResultPage() {
       </div>
 
       {/* Human Feedback Section */}
-      <div className="bg-white rounded-xl border border-industrial-200 p-6 shadow-sm space-y-4">
-        <h2 className="text-base font-bold text-industrial-900">Technician Feedback & Validation</h2>
+      <div className="bg-white rounded-[24px] border border-black/[0.06] p-6 sm:p-8 shadow-[0_2px_14px_rgba(0,0,0,0.02)] space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-[#1d1d1f]">Technician Feedback & Verification</h2>
+          <p className="text-xs text-[#6e6e73] mt-0.5">
+            Validate this assessment to calibrate future multimodal models.
+          </p>
+        </div>
+
         {feedbackSubmitted ? (
-          <div className="p-4 bg-emerald-50 text-emerald-800 text-sm rounded-lg flex items-center space-x-2">
-            <CheckCircle2 className="w-4 h-4" />
+          <div className="p-4 bg-[#34c759]/10 border border-[#34c759]/20 text-[#34c759] text-xs font-medium rounded-[16px] flex items-center space-x-2">
+            <CheckCircle2 className="w-4 h-4 text-[#34c759]" />
             <span>Thank you. Your feedback has been recorded for continuous model calibration.</span>
           </div>
         ) : (
-          <div className="space-y-3 text-sm">
-            <p className="text-xs text-industrial-600">
-              Was this diagnosis and recommended action plan accurate for this asset?
-            </p>
-            <div className="flex items-center space-x-4">
-              <button
-                type="button"
-                onClick={() => setFeedbackSubmitted(true)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition"
-              >
-                Accurate Diagnosis
-              </button>
-              <button
-                type="button"
-                onClick={() => setFeedbackSubmitted(true)}
-                className="px-4 py-2 bg-industrial-200 hover:bg-industrial-300 text-industrial-800 text-xs font-bold rounded-lg transition"
-              >
-                Partially Accurate / Needs Correction
-              </button>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => setFeedbackSubmitted(true)}
+              className="px-5 py-2.5 bg-[#1d1d1f] hover:bg-black text-white text-xs font-medium rounded-full shadow-xs transition-all active:scale-95"
+            >
+              Accurate Diagnosis
+            </button>
+            <button
+              type="button"
+              onClick={() => setFeedbackSubmitted(true)}
+              className="px-5 py-2.5 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] border border-black/[0.06] text-xs font-medium rounded-full transition-all active:scale-95"
+            >
+              Partially Accurate / Needs Correction
+            </button>
           </div>
         )}
       </div>
