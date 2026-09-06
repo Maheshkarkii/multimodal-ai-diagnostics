@@ -34,7 +34,9 @@ async def submit_diagnostic_case(
     request: Request,
     technician_description: str | None = Form(None, description="Field technician symptom observation"),
     sensor_json: str | None = Form(None, description="JSON string encoded SensorTelemetryInput"),
+    sensor_data: str | None = Form(None, description="Alias for sensor_json"),
     equipment_json: str | None = Form(None, description="JSON string encoded EquipmentMetadataInput"),
+    equipment_metadata: str | None = Form(None, description="Alias for equipment_json"),
     image: UploadFile | None = File(None, description="Optional equipment image file (JPEG, PNG, WebP)"),
     audio: UploadFile | None = File(None, description="Optional acoustic recording file (WAV, MP3)"),
     x_request_id: str | None = Header(None, alias="X-Request-ID"),
@@ -44,8 +46,11 @@ async def submit_diagnostic_case(
     req_id = x_request_id or f"REQ-{uuid.uuid4().hex[:8].upper()}"
     logger.info(f"[{req_id}] Ingesting incoming diagnostic submission...")
 
+    raw_sensor_json = sensor_json or sensor_data
+    raw_equipment_json = equipment_json or equipment_metadata
+
     # 1. Validate that at least ONE diagnostic modality is provided
-    if not any([technician_description, sensor_json, image, audio]):
+    if not any([technician_description, raw_sensor_json, image, audio]):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="At least one diagnostic modality (image, audio, sensor data, or technician notes) must be provided.",
@@ -53,9 +58,9 @@ async def submit_diagnostic_case(
 
     # 2. Parse JSON inputs safely
     sensor_input: SensorTelemetryInput | None = None
-    if sensor_json:
+    if raw_sensor_json:
         try:
-            s_dict = json.loads(sensor_json)
+            s_dict = json.loads(raw_sensor_json)
             sensor_input = SensorTelemetryInput(**s_dict)
         except Exception as e:
             raise HTTPException(
@@ -64,9 +69,9 @@ async def submit_diagnostic_case(
             ) from e
 
     equip_input: EquipmentMetadataInput | None = None
-    if equipment_json:
+    if raw_equipment_json:
         try:
-            e_dict = json.loads(equipment_json)
+            e_dict = json.loads(raw_equipment_json)
             equip_input = EquipmentMetadataInput(**e_dict)
         except Exception as e:
             raise HTTPException(

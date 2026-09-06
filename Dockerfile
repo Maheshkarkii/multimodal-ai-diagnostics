@@ -36,8 +36,9 @@ LABEL version="1.0.0"
 # Set environment variables for Python runtime & UTF-8
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONPATH=/app \
-    PATH=/home/appuser/.local/bin: \
+    PYTHONPATH=/app:/home/appuser/.local/lib/python3.11/site-packages \
+    PYTHONUSERBASE=/home/appuser/.local \
+    PATH=/home/appuser/.local/bin:$PATH \
     API_HOST=0.0.0.0 \
     API_PORT=8000 \
     API_WORKERS=1 \
